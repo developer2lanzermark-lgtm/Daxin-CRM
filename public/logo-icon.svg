@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="28" fill="url(#daxin_gradient)" />
+  <path d="M32 34H62C76.3594 34 88 45.6406 88 60C88 74.3594 76.3594 86 62 86H32V34Z" stroke="white" stroke-width="12" stroke-linejoin="round" />
+  <path d="M46 50L60 60L46 70" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="68" cy="60" r="4" fill="white" />
+  <defs>
+    <linearGradient id="daxin_gradient" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0259A2" />
+      <stop offset="1" stop-color="#0c8fe9" />
+    </linearGradient>
+  </defs>
+</svg>
