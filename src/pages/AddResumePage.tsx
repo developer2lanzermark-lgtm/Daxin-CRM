@@ -318,6 +318,8 @@ export const AddResumePage: React.FC = () => {
               />
             </div>
 
+            {/* Job Function + Position on one row, Source + Reference on the next */}
+            <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Job Function (Required, before Position) */}
             <div>
               <label className={labelClass}>
@@ -408,6 +410,7 @@ export const AddResumePage: React.FC = () => {
                 className={inputClass}
               />
               <p className="text-[11px] text-slate-400 mt-1">Referral person, agency, or recruiter name</p>
+            </div>
             </div>
           </div>
         </fieldset>
