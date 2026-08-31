@@ -260,7 +260,7 @@ export const AddResumePage: React.FC = () => {
           <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
             Application Details
           </legend>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Candidate Name */}
             <div>
               <label className={labelClass}>
@@ -340,7 +340,7 @@ export const AddResumePage: React.FC = () => {
             </div>
 
             {/* Position Applied For - dropdown (filtered) OR free text for "Others" */}
-            <div>
+            <div className="md:col-span-2">
               <label className={labelClass}>
                 Position Applied For <span className="text-rose-500">*</span>
               </label>
@@ -378,7 +378,7 @@ export const AddResumePage: React.FC = () => {
             </div>
 
             {/* Last row: Resume Source Channel + Reference / Referred By together */}
-            <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className={labelClass}>
                   Resume Source Channel <span className="text-rose-500">*</span>
@@ -557,7 +557,7 @@ export const AddResumePage: React.FC = () => {
           <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
             Experience
           </legend>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className={labelClass}>Previous Experience</label>
               <select
