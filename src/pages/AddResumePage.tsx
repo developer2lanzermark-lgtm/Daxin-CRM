@@ -315,44 +315,47 @@ export const AddResumePage: React.FC = () => {
               />
             </div>
 
-            {/* Job Function (Required, before Position) */}
-            <div>
-              <label className={labelClass}>
-                Job Function <span className="text-rose-500">*</span>
-              </label>
-              <select
-                required
-                value={selectedJobFunction}
-                onChange={(e) => handleJobFunctionChange(e.target.value as JobFunction)}
-                className={`${inputClass} font-medium`}
-              >
-                <option value="" disabled>-- Select Job Function --</option>
-                {JOB_FUNCTIONS.map((jf) => (
-                  <option key={jf} value={jf}>
-                    {jf}
-                  </option>
-                ))}
-              </select>
-              <p className="text-[11px] text-slate-400 mt-1">Practice Area / Team Group</p>
-            </div>
+            {/* Job Function + Resume Source Channel stacked in one column */}
+            <div className="space-y-6">
+              {/* Job Function (Required, before Position) */}
+              <div>
+                <label className={labelClass}>
+                  Job Function <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  required
+                  value={selectedJobFunction}
+                  onChange={(e) => handleJobFunctionChange(e.target.value as JobFunction)}
+                  className={`${inputClass} font-medium`}
+                >
+                  <option value="" disabled>-- Select Job Function --</option>
+                  {JOB_FUNCTIONS.map((jf) => (
+                    <option key={jf} value={jf}>
+                      {jf}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-400 mt-1">Practice Area / Team Group</p>
+              </div>
 
-            {/* Resume Source Channel (moved directly after Job Function) */}
-            <div>
-              <label className={labelClass}>
-                Resume Source Channel <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={formData.source}
-                onChange={(e) => setFormData({ ...formData, source: e.target.value as ResumeSource })}
-                className={inputClass}
-              >
-                {RESUME_SOURCES.map((src) => (
-                  <option key={src} value={src}>
-                    {src}
-                  </option>
-                ))}
-              </select>
-              <p className="text-[11px] text-slate-400 mt-1">Channel through which CV was received</p>
+              {/* Resume Source Channel (directly under Job Function) */}
+              <div>
+                <label className={labelClass}>
+                  Resume Source Channel <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={formData.source}
+                  onChange={(e) => setFormData({ ...formData, source: e.target.value as ResumeSource })}
+                  className={inputClass}
+                >
+                  {RESUME_SOURCES.map((src) => (
+                    <option key={src} value={src}>
+                      {src}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-400 mt-1">Channel through which CV was received</p>
+              </div>
             </div>
 
             {/* Position Applied For - dropdown (filtered) OR free text for "Others" */}
