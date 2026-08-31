@@ -9,15 +9,22 @@ import {
   ArrowRight,
   TrendingUp,
   FileSpreadsheet,
-  UserPlus
+  UserPlus,
+  FileCheck2,
+  PhoneCall
 } from 'lucide-react';
 import { useCandidates } from '../context/CandidateContext';
 import { StatusBadge } from '../components/common/StatusBadge';
-import { SourceBadge } from '../components/common/SourceBadge';
 import { JobFunctionBadge } from '../components/common/JobFunctionBadge';
 
 export const DashboardPage: React.FC = () => {
   const { candidates, stats } = useCandidates();
+
+  // Calculate candidates needing review vs candidates ready for call
+  const pendingReviewCandidates = candidates.filter(c => !c.reviewDetails && c.status !== 'Reject');
+  const readyForCallCandidates = candidates.filter(
+    c => (c.reviewDetails?.decision === 'Shortlisted' || c.status === 'Process') && c.status !== 'Reject'
+  );
 
   const statusCards = [
     {
@@ -112,6 +119,99 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Recruiter Workflow Stage Quick Banners (Review & Interview Call Hub) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Review Stage Action Card */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50/60 border border-blue-200/90 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-sm">
+                <FileCheck2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">Stage 2: Resume Screening & Review</h3>
+                <p className="text-xs text-slate-500">Screen candidate qualifications & record shortlist decisions</p>
+              </div>
+            </div>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+              {pendingReviewCandidates.length} Pending
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-blue-100">
+            {pendingReviewCandidates.length > 0 ? (
+              <p className="text-xs text-slate-600">
+                Next up: <strong>{pendingReviewCandidates[0].name}</strong> ({pendingReviewCandidates[0].position})
+              </p>
+            ) : (
+              <p className="text-xs text-emerald-700 font-medium">✓ All active resumes have been screened</p>
+            )}
+
+            {pendingReviewCandidates.length > 0 ? (
+              <Link
+                to={`/candidate/${pendingReviewCandidates[0].id}/review`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all"
+              >
+                <span>Start Review</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            ) : (
+              <Link
+                to="/resumes"
+                className="text-xs font-semibold text-blue-600 hover:underline"
+              >
+                View Directory &rarr;
+              </Link>
+            )}
+          </div>
+        </div>
+
+        {/* Call for Interview Action Card */}
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50/60 border border-emerald-200/90 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2.5 bg-emerald-600 text-white rounded-xl shadow-sm">
+                <PhoneCall className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">Stage 3: Interview Call & Invites</h3>
+                <p className="text-xs text-slate-500">Schedule interview slots & dispatch WhatsApp / Email invites</p>
+              </div>
+            </div>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              {readyForCallCandidates.length} Active
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-emerald-100">
+            {readyForCallCandidates.length > 0 ? (
+              <p className="text-xs text-slate-600">
+                Candidate: <strong>{readyForCallCandidates[0].name}</strong> ({readyForCallCandidates[0].position})
+              </p>
+            ) : (
+              <p className="text-xs text-slate-500">No shortlisted candidates waiting</p>
+            )}
+
+            {readyForCallCandidates.length > 0 ? (
+              <Link
+                to={`/candidate/${readyForCallCandidates[0].id}/call`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all"
+              >
+                <span>Call & Schedule</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            ) : (
+              <Link
+                to="/resumes?status=Process"
+                className="text-xs font-semibold text-emerald-700 hover:underline"
+              >
+                View Pipeline &rarr;
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Summary KPI Cards per Status & Month */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total This Month Card */}
@@ -166,7 +266,7 @@ export const DashboardPage: React.FC = () => {
           <div className="p-5 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h3 className="font-bold text-slate-900 text-base">Recent Candidate Resumes</h3>
-              <p className="text-xs text-slate-500">Latest applicants across all hiring channels</p>
+              <p className="text-xs text-slate-500">Latest applicants with direct 1-click Review & Interview Call actions</p>
             </div>
             <Link
               to="/resumes"
@@ -183,9 +283,8 @@ export const DashboardPage: React.FC = () => {
                 <tr>
                   <th className="py-3 px-4">Candidate</th>
                   <th className="py-3 px-4">Job Function & Position</th>
-                  <th className="py-3 px-4">Source</th>
                   <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Action</th>
+                  <th className="py-3 px-4 text-right">Stage Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -203,24 +302,41 @@ export const DashboardPage: React.FC = () => {
                     <td className="py-3 px-4">
                       <div className="space-y-1">
                         <JobFunctionBadge jobFunction={candidate.jobFunction} size="sm" />
-                        <p className="text-xs font-medium text-slate-700 truncate max-w-[180px]">
+                        <p className="text-xs font-medium text-slate-700 truncate max-w-[160px]">
                           {candidate.position}
                         </p>
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <SourceBadge source={candidate.source} size="sm" />
-                    </td>
-                    <td className="py-3 px-4">
                       <StatusBadge status={candidate.status} size="sm" />
                     </td>
                     <td className="py-3 px-4 text-right">
-                      <Link
-                        to={`/candidate/${candidate.id}`}
-                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg hover:bg-blue-100 transition-colors"
-                      >
-                        Details
-                      </Link>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          to={`/candidate/${candidate.id}/review`}
+                          title="Screen & Review Resume"
+                          className="p-1.5 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                        >
+                          <FileCheck2 className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Review</span>
+                        </Link>
+
+                        <Link
+                          to={`/candidate/${candidate.id}/call`}
+                          title="Schedule & Call for Interview"
+                          className="p-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                        >
+                          <PhoneCall className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Call</span>
+                        </Link>
+
+                        <Link
+                          to={`/candidate/${candidate.id}`}
+                          className="text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-1.5 rounded-lg transition-colors"
+                        >
+                          View
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

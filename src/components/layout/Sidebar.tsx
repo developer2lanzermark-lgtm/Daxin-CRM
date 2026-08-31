@@ -9,7 +9,9 @@ import {
   ChevronRight,
   RotateCcw,
   Sparkles,
-  ExternalLink
+  ExternalLink,
+  FileCheck2,
+  PhoneCall
 } from 'lucide-react';
 import { DaxinLogo } from '../common/DaxinLogo';
 import { useCandidates } from '../../context/CandidateContext';
@@ -27,9 +29,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   mobileOpen,
   setMobileOpen
 }) => {
-  const { stats, resetToMockData } = useCandidates();
+  const { candidates, stats, resetToMockData } = useCandidates();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const pendingReviewCount = candidates.filter(c => !c.reviewDetails && c.status !== 'Reject').length;
+  const inProcessCount = stats.process;
 
   const navItems = [
     {
@@ -61,6 +66,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleStatusFilterClick = (status: string) => {
     navigate(`/resumes?status=${status}`);
     setMobileOpen(false);
+  };
+
+  const handleStartFirstReview = () => {
+    const nextCandidate = candidates.find(c => !c.reviewDetails && c.status !== 'Reject') || candidates[0];
+    if (nextCandidate) {
+      navigate(`/candidate/${nextCandidate.id}/review`);
+      setMobileOpen(false);
+    }
+  };
+
+  const handleStartFirstCall = () => {
+    const nextCandidate = candidates.find(c => c.reviewDetails?.decision === 'Shortlisted' || c.status === 'Process') || candidates[0];
+    if (nextCandidate) {
+      navigate(`/candidate/${nextCandidate.id}/call`);
+      setMobileOpen(false);
+    }
   };
 
   return (
@@ -154,6 +175,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 );
               })}
             </nav>
+          </div>
+
+          {/* Recruiter Workflow Quick Actions */}
+          <div>
+            {!collapsed && (
+              <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                Recruitment Stages
+              </p>
+            )}
+            <div className="space-y-1">
+              <button
+                type="button"
+                onClick={handleStartFirstReview}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-blue-800 bg-blue-50/60 hover:bg-blue-100 transition-colors text-left"
+                title={collapsed ? 'Screen & Review Resumes' : undefined}
+              >
+                <FileCheck2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 truncate">Screen & Review</span>
+                    <span className="bg-blue-200 text-blue-900 px-1.5 py-0.5 rounded text-[10px]">
+                      {pendingReviewCount}
+                    </span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleStartFirstCall}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100 transition-colors text-left"
+                title={collapsed ? 'Interview Calls & Scheduling' : undefined}
+              >
+                <PhoneCall className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 truncate">Interview Calls</span>
+                    <span className="bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded text-[10px]">
+                      {inProcessCount}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Quick Pipeline Status Overview */}
