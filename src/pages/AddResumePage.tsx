@@ -260,7 +260,7 @@ export const AddResumePage: React.FC = () => {
           <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
             Application Details
           </legend>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Candidate Name */}
             <div>
               <label className={labelClass}>
@@ -340,7 +340,7 @@ export const AddResumePage: React.FC = () => {
             </div>
 
             {/* Position Applied For - dropdown (filtered) OR free text for "Others" */}
-            <div className="md:col-span-2">
+            <div>
               <label className={labelClass}>
                 Position Applied For <span className="text-rose-500">*</span>
               </label>
@@ -377,38 +377,37 @@ export const AddResumePage: React.FC = () => {
               </p>
             </div>
 
-            {/* Last row: Resume Source Channel + Reference / Referred By together */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className={labelClass}>
-                  Resume Source Channel <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={formData.source}
-                  onChange={(e) => setFormData({ ...formData, source: e.target.value as ResumeSource })}
-                  className={inputClass}
-                >
-                  {RESUME_SOURCES.map((src) => (
-                    <option key={src} value={src}>
-                      {src}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[11px] text-slate-400 mt-1">Channel through which CV was received</p>
-              </div>
+            {/* Resume Source Channel */}
+            <div>
+              <label className={labelClass}>
+                Resume Source Channel <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={formData.source}
+                onChange={(e) => setFormData({ ...formData, source: e.target.value as ResumeSource })}
+                className={inputClass}
+              >
+                {RESUME_SOURCES.map((src) => (
+                  <option key={src} value={src}>
+                    {src}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-slate-400 mt-1">Channel through which CV was received</p>
+            </div>
 
-              <div>
-                <label className={labelClass}>
-                  Reference / Referred By <span className="text-slate-400 font-normal">(Optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                  className={inputClass}
-                />
-                <p className="text-[11px] text-slate-400 mt-1">Referral person, agency, or recruiter name</p>
-              </div>
+            {/* Reference / Referred By (Optional) */}
+            <div>
+              <label className={labelClass}>
+                Reference / Referred By <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                className={inputClass}
+              />
+              <p className="text-[11px] text-slate-400 mt-1">Referral person, agency, or recruiter name</p>
             </div>
           </div>
         </fieldset>
