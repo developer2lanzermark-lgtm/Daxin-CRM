@@ -2,7 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCandidates } from '../context/CandidateContext';
 import { JOB_FUNCTIONS, POSITIONS_BY_JOB_FUNCTION, RESUME_SOURCES, COUNTRY_CODES } from '../data/mockCandidates';
-import type { ResumeSource, CandidateStatus, JobFunction } from '../types/candidate';
+import type {
+  ResumeSource,
+  CandidateStatus,
+  JobFunction,
+  Gender,
+  MaritalStatus,
+  Qualification
+} from '../types/candidate';
 import {
   UserPlus,
   AlertTriangle,
@@ -10,6 +17,15 @@ import {
   CheckCircle2,
   ArrowLeft
 } from 'lucide-react';
+
+const GENDERS: Gender[] = ['Male', 'Female', 'Other'];
+const MARITAL_STATUSES: MaritalStatus[] = ['Single', 'Married', 'Other'];
+const QUALIFICATIONS: Qualification[] = ['School', 'Diploma', 'UG', 'PG'];
+
+const inputClass =
+  'w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all';
+const labelClass =
+  'block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5';
 
 export const AddResumePage: React.FC = () => {
   const { addCandidate, checkDuplicate } = useCandidates();
@@ -32,7 +48,22 @@ export const AddResumePage: React.FC = () => {
     resumeFileSize: '1.5 MB',
     status: 'Unprogress' as CandidateStatus,
     callStatus: 'Pending' as const,
-    remarks: ''
+    remarks: '',
+    // Personal details
+    dob: '',
+    gender: '' as Gender | '',
+    maritalStatus: '' as MaritalStatus | '',
+    // Location
+    city: '',
+    state: '',
+    area: '',
+    // Education
+    qualification: '' as Qualification | '',
+    qualificationDepartment: '',
+    extraQualification: '',
+    // Experience
+    hasPreviousExperience: 'No' as 'Yes' | 'No',
+    yearsOfExperience: ''
   });
 
   const [duplicateWarning, setDuplicateWarning] = useState<{
@@ -44,6 +75,9 @@ export const AddResumePage: React.FC = () => {
 
   const [successMessage, setSuccessMessage] = useState('');
 
+  const isOthers = selectedJobFunction === 'Others';
+  const needsDepartment = formData.qualification === 'UG' || formData.qualification === 'PG';
+
   // Available positions based on selected Job Function
   const availablePositions = useMemo(() => {
     if (!selectedJobFunction) return [];
@@ -53,7 +87,10 @@ export const AddResumePage: React.FC = () => {
   // Handle Job Function change
   const handleJobFunctionChange = (jobFunc: JobFunction | '') => {
     setSelectedJobFunction(jobFunc);
-    if (jobFunc && POSITIONS_BY_JOB_FUNCTION[jobFunc]?.length > 0) {
+    if (jobFunc === 'Others') {
+      // Free-text position entry for "Others"
+      setSelectedPosition('');
+    } else if (jobFunc && POSITIONS_BY_JOB_FUNCTION[jobFunc]?.length > 0) {
       setSelectedPosition(POSITIONS_BY_JOB_FUNCTION[jobFunc][0]);
     } else {
       setSelectedPosition('');
@@ -91,8 +128,8 @@ export const AddResumePage: React.FC = () => {
       return;
     }
 
-    if (!selectedJobFunction || !selectedPosition) {
-      alert('Please select both Job Function and Position Applied For.');
+    if (!selectedJobFunction || !selectedPosition.trim()) {
+      alert('Please select a Job Function and enter the Position Applied For.');
       return;
     }
 
@@ -103,8 +140,24 @@ export const AddResumePage: React.FC = () => {
       mobile: fullMobile,
       countryCode,
       jobFunction: selectedJobFunction as JobFunction,
-      position: selectedPosition,
-      reference: reference.trim() || undefined
+      position: selectedPosition.trim(),
+      reference: reference.trim() || undefined,
+      dob: formData.dob || undefined,
+      gender: (formData.gender || undefined) as Gender | undefined,
+      maritalStatus: (formData.maritalStatus || undefined) as MaritalStatus | undefined,
+      city: formData.city.trim() || undefined,
+      state: formData.state.trim() || undefined,
+      area: formData.area.trim() || undefined,
+      qualification: (formData.qualification || undefined) as Qualification | undefined,
+      qualificationDepartment: needsDepartment
+        ? formData.qualificationDepartment.trim() || undefined
+        : undefined,
+      extraQualification: formData.extraQualification.trim() || undefined,
+      hasPreviousExperience: formData.hasPreviousExperience === 'Yes',
+      yearsOfExperience:
+        formData.hasPreviousExperience === 'Yes' && formData.yearsOfExperience
+          ? Number(formData.yearsOfExperience)
+          : undefined
     };
 
     const result = addCandidate(candidatePayload, { overrideDuplicate: allowOverride });
@@ -198,172 +251,357 @@ export const AddResumePage: React.FC = () => {
       )}
 
       {/* Form Card */}
-      <form onSubmit={(e) => handleSubmit(e, false)} className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Candidate Name */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Candidate Full Name <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Anandha Krishnan"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 font-medium transition-all"
-            />
-          </div>
+      <form onSubmit={(e) => handleSubmit(e, false)} className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-8">
+        {/* SECTION: Application Details */}
+        <fieldset className="space-y-4">
+          <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            Application Details
+          </legend>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Candidate Name */}
+            <div>
+              <label className={labelClass}>
+                Candidate Full Name <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className={`${inputClass} font-medium`}
+              />
+            </div>
 
-          {/* Mobile Number with Separate Country Code */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Mobile Number (Unique) <span className="text-rose-500">*</span>
-            </label>
-            <div className="flex gap-2">
+            {/* Mobile Number with Separate Country Code */}
+            <div>
+              <label className={labelClass}>
+                Mobile Number (Unique) <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex gap-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="w-28 sm:w-32 px-2.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs sm:text-sm text-slate-800 font-mono font-medium"
+                >
+                  {COUNTRY_CODES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.code}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="tel"
+                  required
+                  value={rawMobile}
+                  onBlur={handleFieldBlur}
+                  onChange={(e) => setRawMobile(e.target.value)}
+                  className={`flex-1 ${inputClass} font-mono font-medium`}
+                />
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Country code + mobile number entered separately</p>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className={labelClass}>
+                Email Address (Unique) <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onBlur={handleFieldBlur}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className={inputClass}
+              />
+            </div>
+
+            {/* Job Function (Required, before Position) */}
+            <div>
+              <label className={labelClass}>
+                Job Function <span className="text-rose-500">*</span>
+              </label>
               <select
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                className="w-28 sm:w-32 px-2.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs sm:text-sm text-slate-800 font-mono font-medium"
+                required
+                value={selectedJobFunction}
+                onChange={(e) => handleJobFunctionChange(e.target.value as JobFunction)}
+                className={`${inputClass} font-medium`}
               >
-                {COUNTRY_CODES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.flag} {c.code}
+                <option value="" disabled>-- Select Job Function --</option>
+                {JOB_FUNCTIONS.map((jf) => (
+                  <option key={jf} value={jf}>
+                    {jf}
                   </option>
                 ))}
               </select>
+              <p className="text-[11px] text-slate-400 mt-1">Practice Area / Team Group</p>
+            </div>
+
+            {/* Resume Source Channel (moved directly after Job Function) */}
+            <div>
+              <label className={labelClass}>
+                Resume Source Channel <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={formData.source}
+                onChange={(e) => setFormData({ ...formData, source: e.target.value as ResumeSource })}
+                className={inputClass}
+              >
+                {RESUME_SOURCES.map((src) => (
+                  <option key={src} value={src}>
+                    {src}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-slate-400 mt-1">Channel through which CV was received</p>
+            </div>
+
+            {/* Position Applied For - dropdown (filtered) OR free text for "Others" */}
+            <div>
+              <label className={labelClass}>
+                Position Applied For <span className="text-rose-500">*</span>
+              </label>
+              {isOthers ? (
+                <input
+                  type="text"
+                  required
+                  value={selectedPosition}
+                  onChange={(e) => setSelectedPosition(e.target.value)}
+                  className={`${inputClass} font-medium`}
+                />
+              ) : (
+                <select
+                  required
+                  disabled={!selectedJobFunction}
+                  value={selectedPosition}
+                  onChange={(e) => setSelectedPosition(e.target.value)}
+                  className={`${inputClass} font-medium disabled:opacity-60 disabled:cursor-not-allowed`}
+                >
+                  {!selectedJobFunction && (
+                    <option value="">-- Select Job Function first --</option>
+                  )}
+                  {availablePositions.map((pos) => (
+                    <option key={pos} value={pos}>
+                      {pos}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <p className="text-[11px] text-slate-400 mt-1">
+                {isOthers
+                  ? 'Enter the exact role title'
+                  : `Specific role within ${selectedJobFunction || 'Job Function'}`}
+              </p>
+            </div>
+
+            {/* Reference / Referred By (Optional) */}
+            <div>
+              <label className={labelClass}>
+                Reference / Referred By <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
               <input
-                type="tel"
-                required
-                placeholder="98401 23456"
-                value={rawMobile}
-                onBlur={handleFieldBlur}
-                onChange={(e) => setRawMobile(e.target.value)}
-                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 font-mono font-medium transition-all"
+                type="text"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                className={inputClass}
+              />
+              <p className="text-[11px] text-slate-400 mt-1">Referral person, agency, or recruiter name</p>
+            </div>
+          </div>
+        </fieldset>
+
+        {/* SECTION: Personal Details */}
+        <fieldset className="space-y-4 border-t border-slate-100 pt-6">
+          <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            Personal Details
+          </legend>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+              <label className={labelClass}>Date of Birth</label>
+              <input
+                type="date"
+                value={formData.dob}
+                onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                className={inputClass}
               />
             </div>
-            <p className="text-[11px] text-slate-400 mt-1">Country code + 10-digit mobile number</p>
+            <div>
+              <label className={labelClass}>Gender</label>
+              <select
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender | '' })}
+                className={inputClass}
+              >
+                <option value="">-- Select --</option>
+                {GENDERS.map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Marital Status</label>
+              <select
+                value={formData.maritalStatus}
+                onChange={(e) => setFormData({ ...formData, maritalStatus: e.target.value as MaritalStatus | '' })}
+                className={inputClass}
+              >
+                <option value="">-- Select --</option>
+                {MARITAL_STATUSES.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
           </div>
+        </fieldset>
 
-          {/* Email */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Email Address (Unique) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="email"
-              required
-              placeholder="candidate@example.com"
-              value={formData.email}
-              onBlur={handleFieldBlur}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all"
-            />
+        {/* SECTION: Location */}
+        <fieldset className="space-y-4 border-t border-slate-100 pt-6">
+          <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            Location
+          </legend>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+              <label className={labelClass}>City</label>
+              <input
+                type="text"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>State</label>
+              <input
+                type="text"
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Area</label>
+              <input
+                type="text"
+                value={formData.area}
+                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                className={inputClass}
+              />
+            </div>
           </div>
+        </fieldset>
 
-          {/* 1. Job Function Grouping Field (Required, before Position) */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Job Function <span className="text-rose-500">*</span>
-            </label>
-            <select
-              required
-              value={selectedJobFunction}
-              onChange={(e) => handleJobFunctionChange(e.target.value as JobFunction)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 font-medium transition-all"
-            >
-              <option value="" disabled>-- Select Job Function --</option>
-              {JOB_FUNCTIONS.map((jf) => (
-                <option key={jf} value={jf}>
-                  {jf}
-                </option>
-              ))}
-            </select>
-            <p className="text-[11px] text-slate-400 mt-1">Practice Area / Team Group</p>
-          </div>
+        {/* SECTION: Qualification */}
+        <fieldset className="space-y-4 border-t border-slate-100 pt-6">
+          <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            Qualification
+          </legend>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+              <label className={labelClass}>Qualification</label>
+              <select
+                value={formData.qualification}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    qualification: e.target.value as Qualification | '',
+                    qualificationDepartment:
+                      e.target.value === 'UG' || e.target.value === 'PG'
+                        ? formData.qualificationDepartment
+                        : ''
+                  })
+                }
+                className={inputClass}
+              >
+                <option value="">-- Select --</option>
+                {QUALIFICATIONS.map((q) => (
+                  <option key={q} value={q}>{q}</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Position Applied For (Filtered by Job Function) */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Position Applied For <span className="text-rose-500">*</span>
-            </label>
-            <select
-              required
-              disabled={!selectedJobFunction}
-              value={selectedPosition}
-              onChange={(e) => setSelectedPosition(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {!selectedJobFunction && (
-                <option value="">-- Select Job Function first --</option>
-              )}
-              {availablePositions.map((pos) => (
-                <option key={pos} value={pos}>
-                  {pos}
-                </option>
-              ))}
-            </select>
-            <p className="text-[11px] text-slate-400 mt-1">Specific role within {selectedJobFunction || 'Job Function'}</p>
-          </div>
+            {needsDepartment && (
+              <div>
+                <label className={labelClass}>
+                  Department / Specialization <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.qualificationDepartment}
+                  onChange={(e) => setFormData({ ...formData, qualificationDepartment: e.target.value })}
+                  className={inputClass}
+                />
+                <p className="text-[11px] text-slate-400 mt-1">e.g. B.E. Computer Science, MBA Finance</p>
+              </div>
+            )}
 
-          {/* Resume Source Channel (Referral removed) */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Resume Source Channel <span className="text-rose-500">*</span>
-            </label>
-            <select
-              value={formData.source}
-              onChange={(e) => setFormData({ ...formData, source: e.target.value as ResumeSource })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all"
-            >
-              {RESUME_SOURCES.map((src) => (
-                <option key={src} value={src}>
-                  {src}
-                </option>
-              ))}
-            </select>
-            <p className="text-[11px] text-slate-400 mt-1">Channel through which CV was received</p>
+            <div>
+              <label className={labelClass}>
+                Extra Qualification <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.extraQualification}
+                onChange={(e) => setFormData({ ...formData, extraQualification: e.target.value })}
+                className={inputClass}
+              />
+              <p className="text-[11px] text-slate-400 mt-1">Certifications, diplomas, courses</p>
+            </div>
           </div>
+        </fieldset>
 
-          {/* 2. Separate Reference / Referred By Field (Optional) */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Reference / Referred By <span className="text-slate-400 font-normal">(Optional)</span>
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Manoj Kumar (Senior Dev), Client Name, Agency"
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all"
-            />
-            <p className="text-[11px] text-slate-400 mt-1">Referral person, agency, or recruiter name</p>
-          </div>
+        {/* SECTION: Experience */}
+        <fieldset className="space-y-4 border-t border-slate-100 pt-6">
+          <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            Experience
+          </legend>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+              <label className={labelClass}>Previous Experience</label>
+              <select
+                value={formData.hasPreviousExperience}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    hasPreviousExperience: e.target.value as 'Yes' | 'No',
+                    yearsOfExperience: e.target.value === 'Yes' ? formData.yearsOfExperience : ''
+                  })
+                }
+                className={inputClass}
+              >
+                <option value="No">No (Fresher)</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
 
-          {/* Received Date */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Resume Received Date <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="date"
-              required
-              value={formData.resumeReceivedDate}
-              onChange={(e) => setFormData({ ...formData, resumeReceivedDate: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all"
-            />
+            {formData.hasPreviousExperience === 'Yes' && (
+              <div>
+                <label className={labelClass}>
+                  Years of Experience <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  required
+                  value={formData.yearsOfExperience}
+                  onChange={(e) => setFormData({ ...formData, yearsOfExperience: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+            )}
           </div>
-        </div>
+        </fieldset>
 
         {/* Upload Placeholder */}
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+        <div className="border-t border-slate-100 pt-6">
+          <label className={labelClass}>
             Resume File (PDF / DOCX Placeholder)
           </label>
           <div className="border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50/60 rounded-2xl p-6 text-center transition-colors cursor-pointer">
             <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-2" />
             <p className="text-sm font-medium text-slate-700">
-              Drag & drop resume file here or click to browse
+              Drag &amp; drop resume file here or click to browse
             </p>
             <p className="text-xs text-slate-400 mt-1">PDF, DOC, DOCX up to 10MB</p>
           </div>
@@ -371,15 +609,14 @@ export const AddResumePage: React.FC = () => {
 
         {/* Initial Remarks */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+          <label className={labelClass}>
             Initial Remarks / Notes <span className="text-slate-400 font-normal">(Optional)</span>
           </label>
           <textarea
             rows={3}
-            placeholder="Key skills, notice period, location preference, salary expectation..."
             value={formData.remarks}
             onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800"
+            className={inputClass}
           />
         </div>
 

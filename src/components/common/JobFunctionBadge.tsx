@@ -1,6 +1,6 @@
 import React from 'react';
 import type { JobFunction } from '../../types/candidate';
-import { Code2, Headphones, ShieldCheck, Megaphone, TrendingUp, Briefcase } from 'lucide-react';
+import { Code2, Headphones, ShieldCheck, Megaphone, Briefcase } from 'lucide-react';
 
 interface JobFunctionBadgeProps {
   jobFunction: JobFunction;
@@ -32,17 +32,12 @@ export const JobFunctionBadge: React.FC<JobFunctionBadgeProps> = ({
           icon: ShieldCheck,
           colorClass: 'bg-slate-100 text-slate-700 border-slate-300',
         };
-      case 'Marketing':
+      case 'Marketing & Sales':
         return {
           icon: Megaphone,
           colorClass: 'bg-violet-50 text-violet-700 border-violet-200',
         };
-      case 'Sales':
-        return {
-          icon: TrendingUp,
-          colorClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        };
-      case 'Management':
+      case 'Others':
         return {
           icon: Briefcase,
           colorClass: 'bg-amber-50 text-amber-800 border-amber-300',

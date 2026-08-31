@@ -345,6 +345,64 @@ export const CandidateDetailPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Personal / Location / Qualification / Experience */}
+            {(candidate.dob || candidate.gender || candidate.maritalStatus ||
+              candidate.city || candidate.state || candidate.area ||
+              candidate.qualification || candidate.extraQualification ||
+              candidate.hasPreviousExperience !== undefined) && (
+              <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-3 text-sm">
+                {candidate.dob && (
+                  <div>
+                    <span className="text-xs text-slate-400 block">Date of Birth</span>
+                    <span className="text-slate-800 block mt-0.5">{candidate.dob}</span>
+                  </div>
+                )}
+                {candidate.gender && (
+                  <div>
+                    <span className="text-xs text-slate-400 block">Gender</span>
+                    <span className="text-slate-800 block mt-0.5">{candidate.gender}</span>
+                  </div>
+                )}
+                {candidate.maritalStatus && (
+                  <div>
+                    <span className="text-xs text-slate-400 block">Marital Status</span>
+                    <span className="text-slate-800 block mt-0.5">{candidate.maritalStatus}</span>
+                  </div>
+                )}
+                {(candidate.city || candidate.state || candidate.area) && (
+                  <div className="col-span-2">
+                    <span className="text-xs text-slate-400 block">Location</span>
+                    <span className="text-slate-800 block mt-0.5">
+                      {[candidate.area, candidate.city, candidate.state].filter(Boolean).join(', ')}
+                    </span>
+                  </div>
+                )}
+                {candidate.qualification && (
+                  <div className="col-span-2">
+                    <span className="text-xs text-slate-400 block">Qualification</span>
+                    <span className="text-slate-800 block mt-0.5">
+                      {candidate.qualification}
+                      {candidate.qualificationDepartment ? ` — ${candidate.qualificationDepartment}` : ''}
+                    </span>
+                  </div>
+                )}
+                {candidate.extraQualification && (
+                  <div className="col-span-2">
+                    <span className="text-xs text-slate-400 block">Extra Qualification</span>
+                    <span className="text-slate-800 block mt-0.5">{candidate.extraQualification}</span>
+                  </div>
+                )}
+                <div className="col-span-2">
+                  <span className="text-xs text-slate-400 block">Previous Experience</span>
+                  <span className="text-slate-800 block mt-0.5">
+                    {candidate.hasPreviousExperience
+                      ? `Yes${candidate.yearsOfExperience != null ? ` — ${candidate.yearsOfExperience} year(s)` : ''}`
+                      : 'No (Fresher)'}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Resume File Card */}
             <div className="pt-4 border-t border-slate-100">
               <span className="text-xs text-slate-400 block mb-2 font-medium">Attached Resume File</span>

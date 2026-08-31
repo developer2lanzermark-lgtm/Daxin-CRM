@@ -1,12 +1,17 @@
 export type CandidateStatus = 'Unprogress' | 'Process' | 'Select' | 'Reject';
 
-export type JobFunction = 
-  | 'Service'
-  | 'Developer'
+export type JobFunction =
   | 'Admin'
-  | 'Marketing'
-  | 'Sales'
-  | 'Management';
+  | 'Developer'
+  | 'Marketing & Sales'
+  | 'Others'
+  | 'Service';
+
+export type Gender = 'Male' | 'Female' | 'Other';
+
+export type MaritalStatus = 'Single' | 'Married' | 'Other';
+
+export type Qualification = 'School' | 'Diploma' | 'UG' | 'PG';
 
 export type ResumeSource = 
   | 'Email'
@@ -63,6 +68,21 @@ export interface Candidate {
   position: string;
   source: ResumeSource;
   reference?: string;
+  // Personal details
+  dob?: string; // YYYY-MM-DD
+  gender?: Gender;
+  maritalStatus?: MaritalStatus;
+  // Location
+  city?: string;
+  state?: string;
+  area?: string;
+  // Education
+  qualification?: Qualification;
+  qualificationDepartment?: string; // Department / Specialization for UG / PG
+  extraQualification?: string;
+  // Experience
+  hasPreviousExperience?: boolean;
+  yearsOfExperience?: number;
   resumeReceivedDate: string; // YYYY-MM-DD
   resumeFileName?: string;
   resumeFileSize?: string;

@@ -61,9 +61,17 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (saved) {
         const parsed: Candidate[] = JSON.parse(saved);
         // Graceful migration if any old record has 'Referral' source or missing jobFunction
+        const migrateJobFunction = (jf: unknown): JobFunction => {
+          if (jf === 'Marketing' || jf === 'Sales') return 'Marketing & Sales';
+          if (jf === 'Management') return 'Others';
+          if (jf === 'Admin' || jf === 'Developer' || jf === 'Service' || jf === 'Others' || jf === 'Marketing & Sales') {
+            return jf;
+          }
+          return 'Developer';
+        };
         return parsed.map(c => ({
           ...c,
-          jobFunction: c.jobFunction || 'Developer',
+          jobFunction: migrateJobFunction(c.jobFunction),
           source: ((c.source as string) === 'Referral' ? 'Email' : c.source) as ResumeSource,
           reference: c.reference || ((c.source as string) === 'Referral' ? 'Referred Candidate' : undefined)
         }));
@@ -155,6 +163,8 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const newCandidate: Candidate = {
       ...candidateData,
       id: newId,
+      // Resume received date is always stamped server-side as the current date
+      resumeReceivedDate: nowIso.split('T')[0],
       lastUpdatedDate: nowIso,
       activityLogs: [initialLog]
     };
@@ -250,12 +260,11 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     const byJobFunction: Record<JobFunction, number> = {
-      'Developer': 0,
-      'Service': 0,
       'Admin': 0,
-      'Marketing': 0,
-      'Sales': 0,
-      'Management': 0
+      'Developer': 0,
+      'Marketing & Sales': 0,
+      'Others': 0,
+      'Service': 0
     };
 
     const byCallStatus: Record<CallStatus, number> = {

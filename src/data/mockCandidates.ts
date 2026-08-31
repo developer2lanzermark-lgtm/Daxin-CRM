@@ -1,15 +1,20 @@
 import type { Candidate, JobFunction, ResumeSource } from '../types/candidate';
 
+// Alphabetical order
 export const JOB_FUNCTIONS: JobFunction[] = [
-  'Developer',
-  'Service',
   'Admin',
-  'Marketing',
-  'Sales',
-  'Management'
+  'Developer',
+  'Marketing & Sales',
+  'Others',
+  'Service'
 ];
 
 export const POSITIONS_BY_JOB_FUNCTION: Record<JobFunction, string[]> = {
+  Admin: [
+    'HR Executive',
+    'Office Administrator',
+    'Operations Coordinator'
+  ],
   Developer: [
     'Frontend Developer (React)',
     'Backend Developer (Node / Python)',
@@ -17,30 +22,19 @@ export const POSITIONS_BY_JOB_FUNCTION: Record<JobFunction, string[]> = {
     'QA Automation Engineer',
     'DevOps / Cloud Engineer'
   ],
-  Service: [
-    'Technical Support Engineer',
-    'Customer Success Specialist',
-    'IT Helpdesk Support'
-  ],
-  Admin: [
-    'HR Executive',
-    'Office Administrator',
-    'Operations Coordinator'
-  ],
-  Marketing: [
+  'Marketing & Sales': [
     'Digital Marketing Specialist',
     'Content & SEO Strategist',
-    'UI/UX Designer'
-  ],
-  Sales: [
+    'UI/UX Designer',
     'Sales & Business Development',
     'B2B Account Executive',
     'Inside Sales Specialist'
   ],
-  Management: [
-    'Product Manager',
-    'Engineering Team Lead',
-    'Project Coordinator'
+  Others: [],
+  Service: [
+    'Technical Support Engineer',
+    'Customer Success Specialist',
+    'IT Helpdesk Support'
   ]
 };
 
@@ -74,6 +68,17 @@ export const INITIAL_MOCK_CANDIDATES: Candidate[] = [
     position: 'Frontend Developer (React)',
     source: 'Website Form',
     reference: 'Direct Website Careers Page',
+    dob: '1998-04-12',
+    gender: 'Male',
+    maritalStatus: 'Single',
+    city: 'Tirunelveli',
+    state: 'Tamil Nadu',
+    area: 'Palayamkottai',
+    qualification: 'UG',
+    qualificationDepartment: 'B.E. Computer Science',
+    extraQualification: 'AWS Certified Cloud Practitioner',
+    hasPreviousExperience: true,
+    yearsOfExperience: 3,
     resumeReceivedDate: '2026-08-25',
     resumeFileName: 'Aravind_Resume_React_3YOE.pdf',
     resumeFileSize: '1.8 MB',
@@ -188,7 +193,7 @@ export const INITIAL_MOCK_CANDIDATES: Candidate[] = [
     mobile: '+91 94432 98765',
     countryCode: '+91',
     email: 'karthik.subbu89@gmail.com',
-    jobFunction: 'Marketing',
+    jobFunction: 'Marketing & Sales',
     position: 'UI/UX Designer',
     source: 'Email',
     reference: 'Manoj Kumar (Senior Tech Lead, Employee ID #DX104)',
@@ -369,7 +374,7 @@ export const INITIAL_MOCK_CANDIDATES: Candidate[] = [
     mobile: '+91 98410 77665',
     countryCode: '+91',
     email: 'ananya.ramesh.biz@outlook.com',
-    jobFunction: 'Sales',
+    jobFunction: 'Marketing & Sales',
     position: 'Sales & Business Development',
     source: 'Email',
     reference: 'Venkatesh (Sales VP)',
