@@ -76,7 +76,10 @@ export const AddResumePage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const isOthers = selectedJobFunction === 'Others';
-  const needsDepartment = formData.qualification === 'UG' || formData.qualification === 'PG';
+  const needsDepartment =
+    formData.qualification === 'Diploma' ||
+    formData.qualification === 'UG' ||
+    formData.qualification === 'PG';
 
   // Available positions based on selected Job Function
   const availablePositions = useMemo(() => {
@@ -506,10 +509,9 @@ export const AddResumePage: React.FC = () => {
                   setFormData({
                     ...formData,
                     qualification: e.target.value as Qualification | '',
-                    qualificationDepartment:
-                      e.target.value === 'UG' || e.target.value === 'PG'
-                        ? formData.qualificationDepartment
-                        : ''
+                    qualificationDepartment: ['Diploma', 'UG', 'PG'].includes(e.target.value)
+                      ? formData.qualificationDepartment
+                      : ''
                   })
                 }
                 className={inputClass}
