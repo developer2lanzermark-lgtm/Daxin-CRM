@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCandidates } from '../context/CandidateContext';
-import { AVAILABLE_POSITIONS, RESUME_SOURCES } from '../data/mockCandidates';
-import type { ResumeSource, CandidateStatus } from '../types/candidate';
+import { JOB_FUNCTIONS, POSITIONS_BY_JOB_FUNCTION, RESUME_SOURCES, COUNTRY_CODES } from '../data/mockCandidates';
+import type { ResumeSource, CandidateStatus, JobFunction } from '../types/candidate';
 import {
   UserPlus,
   AlertTriangle,
@@ -15,14 +15,21 @@ export const AddResumePage: React.FC = () => {
   const { addCandidate, checkDuplicate } = useCandidates();
   const navigate = useNavigate();
 
+  const [selectedJobFunction, setSelectedJobFunction] = useState<JobFunction | ''>('Developer');
+  const [selectedPosition, setSelectedPosition] = useState<string>(
+    POSITIONS_BY_JOB_FUNCTION['Developer'][0]
+  );
+  const [countryCode, setCountryCode] = useState<string>('+91');
+  const [rawMobile, setRawMobile] = useState<string>('');
+  const [reference, setReference] = useState<string>('');
+
   const [formData, setFormData] = useState({
     name: '',
-    mobile: '',
     email: '',
     source: 'Website Form' as ResumeSource,
-    position: AVAILABLE_POSITIONS[0],
     resumeReceivedDate: new Date().toISOString().split('T')[0],
     resumeFileName: 'Resume_Candidate.pdf',
+    resumeFileSize: '1.5 MB',
     status: 'Unprogress' as CandidateStatus,
     callStatus: 'Pending' as const,
     remarks: ''
@@ -37,10 +44,33 @@ export const AddResumePage: React.FC = () => {
 
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Available positions based on selected Job Function
+  const availablePositions = useMemo(() => {
+    if (!selectedJobFunction) return [];
+    return POSITIONS_BY_JOB_FUNCTION[selectedJobFunction] || [];
+  }, [selectedJobFunction]);
+
+  // Handle Job Function change
+  const handleJobFunctionChange = (jobFunc: JobFunction | '') => {
+    setSelectedJobFunction(jobFunc);
+    if (jobFunc && POSITIONS_BY_JOB_FUNCTION[jobFunc]?.length > 0) {
+      setSelectedPosition(POSITIONS_BY_JOB_FUNCTION[jobFunc][0]);
+    } else {
+      setSelectedPosition('');
+    }
+  };
+
+  // Helper to get combined formatted mobile number
+  const getFullMobile = () => {
+    if (!rawMobile.trim()) return '';
+    return `${countryCode} ${rawMobile.trim()}`;
+  };
+
   // Live duplicate check on blur
   const handleFieldBlur = () => {
-    if (formData.mobile.trim() || formData.email.trim()) {
-      const check = checkDuplicate(formData.mobile, formData.email);
+    const fullMobile = getFullMobile();
+    if (fullMobile || formData.email.trim()) {
+      const check = checkDuplicate(fullMobile, formData.email);
       if (check.isDuplicate && check.existingCandidate) {
         setDuplicateWarning({
           isDuplicate: true,
@@ -56,12 +86,28 @@ export const AddResumePage: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent, allowOverride = false) => {
     e.preventDefault();
-    if (!formData.name || !formData.mobile || !formData.email) {
+    if (!formData.name || !rawMobile.trim() || !formData.email) {
       alert('Please fill in candidate Name, Mobile Number, and Email.');
       return;
     }
 
-    const result = addCandidate(formData, { overrideDuplicate: allowOverride });
+    if (!selectedJobFunction || !selectedPosition) {
+      alert('Please select both Job Function and Position Applied For.');
+      return;
+    }
+
+    const fullMobile = getFullMobile();
+
+    const candidatePayload = {
+      ...formData,
+      mobile: fullMobile,
+      countryCode,
+      jobFunction: selectedJobFunction as JobFunction,
+      position: selectedPosition,
+      reference: reference.trim() || undefined
+    };
+
+    const result = addCandidate(candidatePayload, { overrideDuplicate: allowOverride });
     if (!result.success) {
       if (result.duplicateResult?.existingCandidate) {
         setDuplicateWarning({
@@ -72,7 +118,7 @@ export const AddResumePage: React.FC = () => {
         });
       }
     } else {
-      setSuccessMessage(`Candidate ${formData.name} added successfully!`);
+      setSuccessMessage(`Candidate ${formData.name} added successfully! Redirecting...`);
       setTimeout(() => {
         navigate(`/candidate/${result.candidate?.id}`);
       }, 1200);
@@ -80,21 +126,21 @@ export const AddResumePage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="p-2 bg-white rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 transition-colors"
+            className="p-2 bg-white rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 transition-colors shadow-sm"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h2 className="text-xl font-bold text-slate-900">Add New Candidate Resume</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Add New Candidate Resume</h2>
             <p className="text-xs sm:text-sm text-slate-500">
-              Manual entry with automated duplicate screening (Mobile & Email)
+              Manual entry with Job Function classification & automated duplicate screening (Mobile & Email)
             </p>
           </div>
         </div>
@@ -126,14 +172,14 @@ export const AddResumePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate(`/candidate/${duplicateWarning.existingId}`)}
-                  className="px-3 py-1.5 bg-amber-800 text-white text-xs font-semibold rounded-lg hover:bg-amber-900 transition-colors"
+                  className="px-3.5 py-1.5 bg-amber-800 text-white text-xs font-semibold rounded-lg hover:bg-amber-900 transition-colors"
                 >
                   View Existing Profile &rarr;
                 </button>
                 <button
                   type="button"
                   onClick={(e) => handleSubmit(e, true)}
-                  className="px-3 py-1.5 bg-amber-100 text-amber-900 border border-amber-300 text-xs font-medium rounded-lg hover:bg-amber-200 transition-colors"
+                  className="px-3.5 py-1.5 bg-amber-100 text-amber-900 border border-amber-300 text-xs font-medium rounded-lg hover:bg-amber-200 transition-colors"
                 >
                   Proceed anyway (Allow duplicate)
                 </button>
@@ -153,7 +199,7 @@ export const AddResumePage: React.FC = () => {
 
       {/* Form Card */}
       <form onSubmit={(e) => handleSubmit(e, false)} className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Candidate Name */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
@@ -165,30 +211,44 @@ export const AddResumePage: React.FC = () => {
               placeholder="e.g. Anandha Krishnan"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 font-medium"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 font-medium transition-all"
             />
           </div>
 
-          {/* Mobile Number */}
+          {/* Mobile Number with Separate Country Code */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Mobile Number (Unique Identifier) <span className="text-rose-500">*</span>
+              Mobile Number (Unique) <span className="text-rose-500">*</span>
             </label>
-            <input
-              type="tel"
-              required
-              placeholder="+91 98400 12345"
-              value={formData.mobile}
-              onBlur={handleFieldBlur}
-              onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 font-mono"
-            />
+            <div className="flex gap-2">
+              <select
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className="w-28 sm:w-32 px-2.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs sm:text-sm text-slate-800 font-mono font-medium"
+              >
+                {COUNTRY_CODES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.flag} {c.code}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="tel"
+                required
+                placeholder="98401 23456"
+                value={rawMobile}
+                onBlur={handleFieldBlur}
+                onChange={(e) => setRawMobile(e.target.value)}
+                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 font-mono font-medium transition-all"
+              />
+            </div>
+            <p className="text-[11px] text-slate-400 mt-1">Country code + 10-digit mobile number</p>
           </div>
 
           {/* Email */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Email Address (Unique Identifier) <span className="text-rose-500">*</span>
+              Email Address (Unique) <span className="text-rose-500">*</span>
             </label>
             <input
               type="email"
@@ -197,29 +257,56 @@ export const AddResumePage: React.FC = () => {
               value={formData.email}
               onBlur={handleFieldBlur}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all"
             />
           </div>
 
-          {/* Position Applied For */}
+          {/* 1. Job Function Grouping Field (Required, before Position) */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Job Function <span className="text-rose-500">*</span>
+            </label>
+            <select
+              required
+              value={selectedJobFunction}
+              onChange={(e) => handleJobFunctionChange(e.target.value as JobFunction)}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 font-medium transition-all"
+            >
+              <option value="" disabled>-- Select Job Function --</option>
+              {JOB_FUNCTIONS.map((jf) => (
+                <option key={jf} value={jf}>
+                  {jf}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] text-slate-400 mt-1">Practice Area / Team Group</p>
+          </div>
+
+          {/* Position Applied For (Filtered by Job Function) */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
               Position Applied For <span className="text-rose-500">*</span>
             </label>
             <select
-              value={formData.position}
-              onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800"
+              required
+              disabled={!selectedJobFunction}
+              value={selectedPosition}
+              onChange={(e) => setSelectedPosition(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {AVAILABLE_POSITIONS.map((pos) => (
+              {!selectedJobFunction && (
+                <option value="">-- Select Job Function first --</option>
+              )}
+              {availablePositions.map((pos) => (
                 <option key={pos} value={pos}>
                   {pos}
                 </option>
               ))}
             </select>
+            <p className="text-[11px] text-slate-400 mt-1">Specific role within {selectedJobFunction || 'Job Function'}</p>
           </div>
 
-          {/* Resume Source */}
+          {/* Resume Source Channel (Referral removed) */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
               Resume Source Channel <span className="text-rose-500">*</span>
@@ -227,7 +314,7 @@ export const AddResumePage: React.FC = () => {
             <select
               value={formData.source}
               onChange={(e) => setFormData({ ...formData, source: e.target.value as ResumeSource })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all"
             >
               {RESUME_SOURCES.map((src) => (
                 <option key={src} value={src}>
@@ -235,18 +322,35 @@ export const AddResumePage: React.FC = () => {
                 </option>
               ))}
             </select>
+            <p className="text-[11px] text-slate-400 mt-1">Channel through which CV was received</p>
+          </div>
+
+          {/* 2. Separate Reference / Referred By Field (Optional) */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              Reference / Referred By <span className="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Manoj Kumar (Senior Dev), Client Name, Agency"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all"
+            />
+            <p className="text-[11px] text-slate-400 mt-1">Referral person, agency, or recruiter name</p>
           </div>
 
           {/* Received Date */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-              Resume Received Date
+              Resume Received Date <span className="text-rose-500">*</span>
             </label>
             <input
               type="date"
+              required
               value={formData.resumeReceivedDate}
               onChange={(e) => setFormData({ ...formData, resumeReceivedDate: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all"
             />
           </div>
         </div>
@@ -268,11 +372,11 @@ export const AddResumePage: React.FC = () => {
         {/* Initial Remarks */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-            Initial Remarks / Notes
+            Initial Remarks / Notes <span className="text-slate-400 font-normal">(Optional)</span>
           </label>
           <textarea
             rows={3}
-            placeholder="Key skills, notice period, interview preference..."
+            placeholder="Key skills, notice period, location preference, salary expectation..."
             value={formData.remarks}
             onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
             className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800"

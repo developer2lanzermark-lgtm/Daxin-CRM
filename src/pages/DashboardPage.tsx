@@ -14,6 +14,7 @@ import {
 import { useCandidates } from '../context/CandidateContext';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { SourceBadge } from '../components/common/SourceBadge';
+import { JobFunctionBadge } from '../components/common/JobFunctionBadge';
 
 export const DashboardPage: React.FC = () => {
   const { candidates, stats } = useCandidates();
@@ -70,7 +71,7 @@ export const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Welcome Banner */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-700 via-blue-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-900/10">
         <div className="relative z-10 max-w-2xl space-y-2">
@@ -82,7 +83,7 @@ export const DashboardPage: React.FC = () => {
             Track Candidates from Sourcing to Selection
           </h2>
           <p className="text-sm sm:text-base text-blue-100/90 leading-relaxed">
-            Multi-channel candidate tracking across 4 pipeline stages with duplicate detection by Mobile & Email.
+            Multi-channel candidate tracking across 4 pipeline stages with Job Function grouping & screening.
           </p>
           <div className="pt-2 flex flex-wrap gap-3">
             <Link
@@ -181,7 +182,7 @@ export const DashboardPage: React.FC = () => {
               <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
                 <tr>
                   <th className="py-3 px-4">Candidate</th>
-                  <th className="py-3 px-4">Position</th>
+                  <th className="py-3 px-4">Job Function & Position</th>
                   <th className="py-3 px-4">Source</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Action</th>
@@ -199,8 +200,13 @@ export const DashboardPage: React.FC = () => {
                       </Link>
                       <span className="text-xs text-slate-400 font-mono">{candidate.mobile}</span>
                     </td>
-                    <td className="py-3 px-4 text-xs font-medium text-slate-700">
-                      {candidate.position}
+                    <td className="py-3 px-4">
+                      <div className="space-y-1">
+                        <JobFunctionBadge jobFunction={candidate.jobFunction} size="sm" />
+                        <p className="text-xs font-medium text-slate-700 truncate max-w-[180px]">
+                          {candidate.position}
+                        </p>
+                      </div>
                     </td>
                     <td className="py-3 px-4">
                       <SourceBadge source={candidate.source} size="sm" />

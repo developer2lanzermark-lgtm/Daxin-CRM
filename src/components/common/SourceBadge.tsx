@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ResumeSource } from '../../types/candidate';
-import { Mail, Globe, Footprints, Users, FormInput } from 'lucide-react';
+import { Mail, Globe, Footprints, FormInput } from 'lucide-react';
 
 interface SourceBadgeProps {
   source: ResumeSource;
@@ -31,11 +31,6 @@ export const SourceBadge: React.FC<SourceBadgeProps> = ({
         return {
           icon: Footprints,
           colorClass: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100/70',
-        };
-      case 'Referral':
-        return {
-          icon: Users,
-          colorClass: 'bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100/70',
         };
       case 'Website Form':
         return {

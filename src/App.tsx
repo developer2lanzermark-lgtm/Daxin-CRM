@@ -5,6 +5,8 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ResumeListPage } from './pages/ResumeListPage';
 import { AddResumePage } from './pages/AddResumePage';
 import { CandidateDetailPage } from './pages/CandidateDetailPage';
+import { CandidateReviewPage } from './pages/CandidateReviewPage';
+import { CandidateCallPage } from './pages/CandidateCallPage';
 import { ReportsPage } from './pages/ReportsPage';
 
 export function App() {
@@ -17,6 +19,8 @@ export function App() {
             <Route path="resumes" element={<ResumeListPage />} />
             <Route path="add-resume" element={<AddResumePage />} />
             <Route path="candidate/:id" element={<CandidateDetailPage />} />
+            <Route path="candidate/:id/review" element={<CandidateReviewPage />} />
+            <Route path="candidate/:id/call" element={<CandidateCallPage />} />
             <Route path="reports" element={<ReportsPage />} />
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

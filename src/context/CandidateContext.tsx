@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import type { Candidate, DuplicateCheckResult, ActivityLog, ResumeSource, CallStatus } from '../types/candidate';
+import type { Candidate, DuplicateCheckResult, ActivityLog, ResumeSource, CallStatus, JobFunction } from '../types/candidate';
 import { INITIAL_MOCK_CANDIDATES } from '../data/mockCandidates';
 
 interface CandidateStats {
@@ -10,6 +10,7 @@ interface CandidateStats {
   reject: number;
   thisMonthCount: number;
   bySource: Record<ResumeSource, number>;
+  byJobFunction: Record<JobFunction, number>;
   byCallStatus: Record<CallStatus, number>;
 }
 
@@ -24,7 +25,7 @@ interface CandidateContextType {
   updateCandidate: (
     id: string,
     updates: Partial<Candidate>,
-    logInfo?: { type: ActivityLog['type']; description: string; performedBy?: string }
+    logInfo?: { type: ActivityLog['type']; description: string; performedBy?: string; details?: ActivityLog['details'] }
   ) => boolean;
   deleteCandidate: (id: string) => boolean;
   getCandidateById: (id: string) => Candidate | undefined;
@@ -33,7 +34,7 @@ interface CandidateContextType {
 
 const CandidateContext = createContext<CandidateContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_KEY = 'daxin_hr_crm_candidates_v1';
+const LOCAL_STORAGE_KEY = 'daxin_hr_crm_candidates_v2';
 
 // Helper to normalize mobile number for strict comparison (strips all non-digit characters)
 export const normalizeMobile = (phone: string): string => {
@@ -58,7 +59,14 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed: Candidate[] = JSON.parse(saved);
+        // Graceful migration if any old record has 'Referral' source or missing jobFunction
+        return parsed.map(c => ({
+          ...c,
+          jobFunction: c.jobFunction || 'Developer',
+          source: ((c.source as string) === 'Referral' ? 'Email' : c.source) as ResumeSource,
+          reference: c.reference || ((c.source as string) === 'Referral' ? 'Referred Candidate' : undefined)
+        }));
       }
     } catch (e) {
       console.error('Failed to parse candidates from localStorage', e);
@@ -140,7 +148,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       id: `log-${Date.now()}`,
       timestamp: nowIso,
       type: 'created',
-      description: `Resume added from source: ${candidateData.source}`,
+      description: `Resume added from source: ${candidateData.source}${candidateData.reference ? ` (Ref: ${candidateData.reference})` : ''}`,
       performedBy: 'HR Team'
     };
 
@@ -163,7 +171,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const updateCandidate = (
     id: string,
     updates: Partial<Candidate>,
-    logInfo?: { type: ActivityLog['type']; description: string; performedBy?: string }
+    logInfo?: { type: ActivityLog['type']; description: string; performedBy?: string; details?: ActivityLog['details'] }
   ) => {
     const existing = candidates.find(c => c.id === id);
     if (!existing) return false;
@@ -178,7 +186,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         type: logInfo.type,
         description: logInfo.description,
         performedBy: logInfo.performedBy || 'HR User',
-        details: {
+        details: logInfo.details || {
           oldStatus: existing.status,
           newStatus: updates.status || existing.status,
           callStatus: updates.callStatus || existing.callStatus,
@@ -238,8 +246,16 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       'Email': 0,
       'Job Portal': 0,
       'Walk-in': 0,
-      'Referral': 0,
       'Website Form': 0
+    };
+
+    const byJobFunction: Record<JobFunction, number> = {
+      'Developer': 0,
+      'Service': 0,
+      'Admin': 0,
+      'Marketing': 0,
+      'Sales': 0,
+      'Management': 0
     };
 
     const byCallStatus: Record<CallStatus, number> = {
@@ -259,6 +275,11 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Sources
       if (bySource[c.source] !== undefined) {
         bySource[c.source]++;
+      }
+
+      // Job Function
+      if (c.jobFunction && byJobFunction[c.jobFunction] !== undefined) {
+        byJobFunction[c.jobFunction]++;
       }
 
       // Call status
@@ -283,6 +304,7 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       reject,
       thisMonthCount,
       bySource,
+      byJobFunction,
       byCallStatus
     };
   }, [candidates]);
