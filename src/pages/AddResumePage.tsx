@@ -298,7 +298,6 @@ export const AddResumePage: React.FC = () => {
                   className={`flex-1 ${inputClass} font-mono font-medium`}
                 />
               </div>
-              <p className="text-[11px] text-slate-400 mt-1">Country code + mobile number entered separately</p>
             </div>
 
             {/* Email */}
