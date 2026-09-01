@@ -35,7 +35,8 @@ export const AddResumePage: React.FC = () => {
     statesByCountryCode: STATES_BY_COUNTRY,
     citiesByState: CITIES_BY_STATE,
     qualifications: QUALIFICATIONS,
-    qualificationsNeedingDepartment: QUALIFICATIONS_NEEDING_DEPARTMENT
+    qualificationsNeedingDepartment: QUALIFICATIONS_NEEDING_DEPARTMENT,
+    experienceLevels: EXPERIENCE_LEVELS
   } = options;
   const GENDERS = GENDER_OPTIONS;
   const MARITAL_STATUSES = MARITAL_STATUS_OPTIONS;
@@ -69,8 +70,7 @@ export const AddResumePage: React.FC = () => {
     qualificationDepartment: '',
     extraQualification: '',
     // Experience
-    hasPreviousExperience: 'No' as 'Yes' | 'No',
-    yearsOfExperience: ''
+    experienceLevel: 'No'
   });
 
   const [duplicateWarning, setDuplicateWarning] = useState<{
@@ -192,11 +192,7 @@ export const AddResumePage: React.FC = () => {
         ? formData.qualificationDepartment.trim() || undefined
         : undefined,
       extraQualification: formData.extraQualification.trim() || undefined,
-      hasPreviousExperience: formData.hasPreviousExperience === 'Yes',
-      yearsOfExperience:
-        formData.hasPreviousExperience === 'Yes' && formData.yearsOfExperience
-          ? Number(formData.yearsOfExperience)
-          : undefined
+      experienceLevel: formData.experienceLevel || undefined
     };
 
     const result = addCandidate(candidatePayload, { overrideDuplicate: allowOverride });
@@ -629,37 +625,15 @@ export const AddResumePage: React.FC = () => {
             <div>
               <label className={labelClass}>Previous Experience</label>
               <select
-                value={formData.hasPreviousExperience}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    hasPreviousExperience: e.target.value as 'Yes' | 'No',
-                    yearsOfExperience: e.target.value === 'Yes' ? formData.yearsOfExperience : ''
-                  })
-                }
+                value={formData.experienceLevel}
+                onChange={(e) => setFormData({ ...formData, experienceLevel: e.target.value })}
                 className={inputClass}
               >
-                <option value="No">No (Fresher)</option>
-                <option value="Yes">Yes</option>
+                {EXPERIENCE_LEVELS.map((lvl) => (
+                  <option key={lvl} value={lvl}>{lvl}</option>
+                ))}
               </select>
             </div>
-
-            {formData.hasPreviousExperience === 'Yes' && (
-              <div>
-                <label className={labelClass}>
-                  Years of Experience <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.5}
-                  required
-                  value={formData.yearsOfExperience}
-                  onChange={(e) => setFormData({ ...formData, yearsOfExperience: e.target.value })}
-                  className={inputClass}
-                />
-              </div>
-            )}
           </div>
         </fieldset>
 

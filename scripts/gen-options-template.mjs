@@ -58,7 +58,8 @@ const D = {
     ['Diploma', 'Yes'],
     ['UG', 'Yes'],
     ['PG', 'Yes']
-  ]
+  ],
+  experienceLevels: ['No', '0-1 year', '1-3 years', '3-5 years', '5-10 years', '10+ years']
 };
 
 const wb = XLSX.utils.book_new();
@@ -80,6 +81,7 @@ add('City', [
   ...Object.entries(D.citiesByState).flatMap(([st, list]) => list.map((c) => [st, c]))
 ]);
 add('Qualification', [['Qualification', 'Needs Department'], ...D.qualifications]);
+add('ExperienceLevel', [['Experience Level'], ...D.experienceLevels.map((v) => [v])]);
 
 XLSX.writeFile(wb, out);
 console.log('Wrote', out);

@@ -17,7 +17,8 @@ import {
   Phone,
   MapPin,
   Building2,
-  GraduationCap
+  GraduationCap,
+  Clock
 } from 'lucide-react';
 
 /* ----------------------------------------------------------------- helpers */
@@ -92,7 +93,8 @@ const SECTIONS: SectionDef[] = [
   { id: 'countries', title: 'Country Codes', desc: 'Dial codes for the mobile field', icon: Phone },
   { id: 'states', title: 'States', desc: 'Shown after a Country Code is chosen', icon: MapPin },
   { id: 'cities', title: 'Cities', desc: 'Shown after a State is chosen', icon: Building2 },
-  { id: 'quals', title: 'Qualifications', desc: 'Education levels + Department toggle', icon: GraduationCap }
+  { id: 'quals', title: 'Qualifications', desc: 'Education levels + Department toggle', icon: GraduationCap },
+  { id: 'experience', title: 'Work Experience', desc: 'Options for the Previous Experience dropdown', icon: Clock }
 ];
 
 const Section: React.FC<{ def: SectionDef; children: React.ReactNode }> = ({ def, children }) => {
@@ -184,7 +186,8 @@ export const SettingsPage: React.FC = () => {
       statesByCountryCode: trimMap(o.statesByCountryCode),
       citiesByState: trimMap(o.citiesByState),
       qualifications: trimList(o.qualifications),
-      qualificationsNeedingDepartment: trimList(o.qualificationsNeedingDepartment)
+      qualificationsNeedingDepartment: trimList(o.qualificationsNeedingDepartment),
+      experienceLevels: trimList(o.experienceLevels)
     };
   };
 
@@ -449,6 +452,15 @@ export const SettingsPage: React.FC = () => {
                   label="Add Qualification"
                 />
               </div>
+            </Section>
+
+            <Section def={SECTIONS[7]}>
+              <StringList
+                items={draft.experienceLevels}
+                onChange={(next) => set({ experienceLevels: next })}
+                placeholder="e.g. 1-3 years"
+                addLabel="Add Experience Level"
+              />
             </Section>
 
             {/* footer actions */}

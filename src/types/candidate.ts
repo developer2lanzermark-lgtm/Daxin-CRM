@@ -74,8 +74,7 @@ export interface Candidate {
   qualificationDepartment?: string; // Department / Specialization for UG / PG
   extraQualification?: string;
   // Experience
-  hasPreviousExperience?: boolean;
-  yearsOfExperience?: number;
+  experienceLevel?: string; // e.g. "No", "0-1 year", "1-3 years", ...
   resumeReceivedDate: string; // YYYY-MM-DD
   resumeFileName?: string;
   resumeFileSize?: string;

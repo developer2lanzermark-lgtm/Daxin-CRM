@@ -18,6 +18,7 @@ export interface AppOptions {
   qualifications: string[];
   // Qualifications that require a "Department / Specialization" field
   qualificationsNeedingDepartment: string[];
+  experienceLevels: string[];
 }
 
 export const DEFAULT_OPTIONS: AppOptions = {
@@ -69,7 +70,8 @@ export const DEFAULT_OPTIONS: AppOptions = {
     Delhi: ['New Delhi']
   },
   qualifications: ['School', 'Diploma', 'UG', 'PG'],
-  qualificationsNeedingDepartment: ['Diploma', 'UG', 'PG']
+  qualificationsNeedingDepartment: ['Diploma', 'UG', 'PG'],
+  experienceLevels: ['No', '0-1 year', '1-3 years', '3-5 years', '5-10 years', '10+ years']
 };
 
 // ---- NOT from the sheet: fixed lists --------------------------------------

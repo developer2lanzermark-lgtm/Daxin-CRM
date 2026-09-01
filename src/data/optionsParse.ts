@@ -12,7 +12,8 @@ export const TAB_NAMES = [
   'CountryCode',
   'State',
   'City',
-  'Qualification'
+  'Qualification',
+  'ExperienceLevel'
 ] as const;
 export type TabName = (typeof TAB_NAMES)[number];
 
@@ -101,6 +102,8 @@ export function buildAppOptions(tabs: Partial<Record<TabName, TabRows>>): AppOpt
     }
   }
 
+  const experienceLevels = firstCol(tabs.ExperienceLevel);
+
   return {
     jobFunctions: jobFunctions.length ? jobFunctions : DEFAULT_OPTIONS.jobFunctions,
     positionsByJobFunction: Object.keys(positionsByJobFunction).length
@@ -117,6 +120,7 @@ export function buildAppOptions(tabs: Partial<Record<TabName, TabRows>>): AppOpt
     qualifications: qualifications.length ? qualifications : DEFAULT_OPTIONS.qualifications,
     qualificationsNeedingDepartment: qualificationsNeedingDepartment.length
       ? qualificationsNeedingDepartment
-      : DEFAULT_OPTIONS.qualificationsNeedingDepartment
+      : DEFAULT_OPTIONS.qualificationsNeedingDepartment,
+    experienceLevels: experienceLevels.length ? experienceLevels : DEFAULT_OPTIONS.experienceLevels
   };
 }

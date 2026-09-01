@@ -45,5 +45,7 @@ export async function downloadOptionsXlsx(options: AppOptions, fileName = 'optio
     ])
   ]);
 
+  add('ExperienceLevel', [['Experience Level'], ...options.experienceLevels.map((v) => [v])]);
+
   XLSX.writeFile(wb, fileName);
 }

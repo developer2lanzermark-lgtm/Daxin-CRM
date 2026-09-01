@@ -350,7 +350,7 @@ export const CandidateDetailPage: React.FC = () => {
             {(candidate.dob || candidate.gender || candidate.maritalStatus ||
               candidate.city || candidate.state || candidate.area ||
               candidate.qualification || candidate.extraQualification ||
-              candidate.hasPreviousExperience !== undefined) && (
+              candidate.experienceLevel) && (
               <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-3 text-sm">
                 {candidate.dob && (
                   <div>
@@ -393,14 +393,12 @@ export const CandidateDetailPage: React.FC = () => {
                     <span className="text-slate-800 block mt-0.5">{candidate.extraQualification}</span>
                   </div>
                 )}
-                <div className="col-span-2">
-                  <span className="text-xs text-slate-400 block">Previous Experience</span>
-                  <span className="text-slate-800 block mt-0.5">
-                    {candidate.hasPreviousExperience
-                      ? `Yes${candidate.yearsOfExperience != null ? ` — ${candidate.yearsOfExperience} year(s)` : ''}`
-                      : 'No (Fresher)'}
-                  </span>
-                </div>
+                {candidate.experienceLevel && (
+                  <div className="col-span-2">
+                    <span className="text-xs text-slate-400 block">Previous Experience</span>
+                    <span className="text-slate-800 block mt-0.5">{candidate.experienceLevel}</span>
+                  </div>
+                )}
               </div>
             )}
 
