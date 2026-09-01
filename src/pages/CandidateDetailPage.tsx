@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCandidates } from '../context/CandidateContext';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -6,6 +6,14 @@ import { SourceBadge } from '../components/common/SourceBadge';
 import { CallStatusBadge } from '../components/common/CallStatusBadge';
 import { JobFunctionBadge } from '../components/common/JobFunctionBadge';
 import { StickyHeader } from '../components/layout/StickyHeader';
+import {
+  personKey,
+  getResume,
+  saveResume,
+  openResumeInNewTab,
+  formatSize,
+  type StoredResume
+} from '../data/resumeStore';
 import type { CandidateStatus, CallStatus } from '../types/candidate';
 import {
   ArrowLeft,
@@ -13,7 +21,8 @@ import {
   FileText,
   Send,
   Trash2,
-  Download,
+  Eye,
+  UploadCloud,
   AlertCircle,
   FileCheck2,
   PhoneCall,
@@ -29,6 +38,36 @@ export const CandidateDetailPage: React.FC = () => {
 
   const [newRemark, setNewRemark] = useState('');
   const [statusUpdatedToast, setStatusUpdatedToast] = useState('');
+
+  const resumeKey = candidate ? personKey(candidate.mobile, candidate.email) : '';
+  const [storedResume, setStoredResume] = useState<StoredResume | null | undefined>(undefined);
+
+  const loadResume = useCallback(() => {
+    if (!resumeKey) return;
+    getResume(resumeKey)
+      .then((r) => setStoredResume(r ?? null))
+      .catch(() => setStoredResume(null));
+  }, [resumeKey]);
+
+  useEffect(() => {
+    loadResume();
+  }, [loadResume]);
+
+  const handleReplaceResume = async (file: File) => {
+    if (!candidate) return;
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      window.alert('Please choose a PDF file.');
+      return;
+    }
+    await saveResume(resumeKey, file);
+    updateCandidate(candidate.id, {
+      resumeFileName: file.name,
+      resumeFileSize: formatSize(file.size)
+    });
+    loadResume();
+    setStatusUpdatedToast('Resume file replaced');
+    setTimeout(() => setStatusUpdatedToast(''), 3000);
+  };
 
   if (!candidate) {
     return (
@@ -405,24 +444,48 @@ export const CandidateDetailPage: React.FC = () => {
             {/* Resume File Card */}
             <div className="pt-4 border-t border-slate-100">
               <span className="text-xs text-slate-400 block mb-2 font-medium">Attached Resume File</span>
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 overflow-hidden">
-                  <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                  <FileText className={`w-5 h-5 flex-shrink-0 ${storedResume ? 'text-blue-600' : 'text-slate-400'}`} />
                   <div className="truncate">
                     <p className="text-xs font-semibold text-slate-800 truncate">
-                      {candidate.resumeFileName || 'Resume.pdf'}
+                      {storedResume?.fileName || candidate.resumeFileName || 'No file uploaded'}
                     </p>
-                    <p className="text-[10px] text-slate-400">{candidate.resumeFileSize || '1.5 MB'}</p>
+                    <p className="text-[10px] text-slate-400">
+                      {storedResume
+                        ? `${formatSize(storedResume.fileSize)} · uploaded ${new Date(storedResume.uploadedAt).toLocaleDateString()}`
+                        : 'Not uploaded in this browser'}
+                    </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => alert(`Simulating viewing ${candidate.resumeFileName}`)}
-                  className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                  title="Download Resume"
-                >
-                  <Download className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {storedResume && (
+                    <button
+                      type="button"
+                      onClick={() => openResumeInNewTab(resumeKey)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                      title="View resume"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  )}
+                  <label
+                    className="p-1.5 text-slate-500 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                    title={storedResume ? 'Replace resume' : 'Upload resume'}
+                  >
+                    <UploadCloud className="w-4 h-4" />
+                    <input
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleReplaceResume(f);
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                </div>
               </div>
             </div>
           </div>

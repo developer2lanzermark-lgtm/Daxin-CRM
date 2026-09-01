@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCandidates } from '../context/CandidateContext';
 import { useOptions } from '../context/OptionsContext';
 import { GENDER_OPTIONS, MARITAL_STATUS_OPTIONS } from '../data/optionDefaults';
+import { saveResume, personKey, formatSize } from '../data/resumeStore';
 import { StickyHeader } from '../components/layout/StickyHeader';
 import type {
   ResumeSource,
@@ -46,6 +47,7 @@ export const AddResumePage: React.FC = () => {
   const [countryCode, setCountryCode] = useState<string>('+91');
   const [rawMobile, setRawMobile] = useState<string>('');
   const [reference, setReference] = useState<string>('');
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -160,7 +162,7 @@ export const AddResumePage: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent, allowOverride = false) => {
+  const handleSubmit = async (e: React.FormEvent, allowOverride = false) => {
     e.preventDefault();
     if (!formData.name || !rawMobile.trim() || !formData.email) {
       alert('Please fill in candidate Name, Mobile Number, and Email.');
@@ -192,7 +194,9 @@ export const AddResumePage: React.FC = () => {
         ? formData.qualificationDepartment.trim() || undefined
         : undefined,
       extraQualification: formData.extraQualification.trim() || undefined,
-      experienceLevel: formData.experienceLevel || undefined
+      experienceLevel: formData.experienceLevel || undefined,
+      resumeFileName: resumeFile ? resumeFile.name : formData.resumeFileName,
+      resumeFileSize: resumeFile ? formatSize(resumeFile.size) : formData.resumeFileSize
     };
 
     const result = addCandidate(candidatePayload, { overrideDuplicate: allowOverride });
@@ -206,6 +210,13 @@ export const AddResumePage: React.FC = () => {
         });
       }
     } else {
+      if (resumeFile) {
+        try {
+          await saveResume(personKey(fullMobile, formData.email), resumeFile);
+        } catch (err) {
+          console.error('Failed to store resume file', err);
+        }
+      }
       setSuccessMessage(`Candidate ${formData.name} added successfully! Redirecting...`);
       setTimeout(() => {
         navigate(`/candidate/${result.candidate?.id}`);
@@ -603,7 +614,7 @@ export const AddResumePage: React.FC = () => {
 
             <div>
               <label className={labelClass}>
-                Extra Qualification <span className="text-slate-400 font-normal">(Optional)</span>
+                Additional Qualification <span className="text-slate-400 font-normal">(Optional)</span>
               </label>
               <input
                 type="text"
@@ -637,18 +648,63 @@ export const AddResumePage: React.FC = () => {
           </div>
         </fieldset>
 
-        {/* Upload Placeholder */}
+        {/* Resume upload */}
         <div className="border-t border-slate-100 pt-6">
-          <label className={labelClass}>
-            Resume File (PDF / DOCX Placeholder)
+          <label className={labelClass}>Resume File (PDF)</label>
+          <label
+            className={`block border-2 border-dashed rounded-2xl p-6 text-center transition-colors cursor-pointer ${
+              resumeFile
+                ? 'border-emerald-300 bg-emerald-50/50'
+                : 'border-slate-200 hover:border-blue-400 bg-slate-50/60'
+            }`}
+          >
+            <input
+              type="file"
+              accept="application/pdf,.pdf"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) {
+                  alert('Please choose a PDF file.');
+                  return;
+                }
+                if (f.size > 10 * 1024 * 1024) {
+                  alert('File is larger than 10 MB.');
+                  return;
+                }
+                setResumeFile(f);
+              }}
+            />
+            {resumeFile ? (
+              <>
+                <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+                <p className="text-sm font-semibold text-slate-800">{resumeFile.name}</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  {formatSize(resumeFile.size)} &middot; click to choose a different file
+                </p>
+              </>
+            ) : (
+              <>
+                <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                <p className="text-sm font-medium text-slate-700">Click to choose a PDF resume</p>
+                <p className="text-xs text-slate-400 mt-1">PDF only, up to 10&nbsp;MB</p>
+              </>
+            )}
           </label>
-          <div className="border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50/60 rounded-2xl p-6 text-center transition-colors cursor-pointer">
-            <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-            <p className="text-sm font-medium text-slate-700">
-              Drag &amp; drop resume file here or click to browse
-            </p>
-            <p className="text-xs text-slate-400 mt-1">PDF, DOC, DOCX up to 10MB</p>
-          </div>
+          {resumeFile && (
+            <button
+              type="button"
+              onClick={() => setResumeFile(null)}
+              className="mt-2 text-xs font-semibold text-rose-600 hover:text-rose-800"
+            >
+              Remove file
+            </button>
+          )}
+          <p className="text-[11px] text-slate-400 mt-2">
+            Stored in this browser and linked to the candidate. Uploading again for the same
+            person (same email/mobile) replaces the earlier file.
+          </p>
         </div>
 
         {/* Initial Remarks */}
