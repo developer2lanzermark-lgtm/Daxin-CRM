@@ -8,8 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "gen:options": "node scripts/gen-options-template.mjs",
-    "gen:sample-resume": "node scripts/gen-sample-resume.mjs"
+    "gen:options": "node scripts/gen-options-template.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
