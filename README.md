@@ -22,19 +22,19 @@ Row 1 of every tab is a header row. On the form, choosing a **Country Code** fil
 **State**, choosing a **State** filters **City**; **Area** is free text. A tab with no
 rows becomes a plain text box.
 
-### To change the options (e.g. another company adapting the app)
+### Changing the options
 
-1. Edit **`public/options.xlsx`** in Excel / Google Sheets / LibreOffice – add or remove rows.
-2. Commit and push – Render rebuilds and serves the new file.
+**Easiest – the in-app Settings page** (`/settings`): edit any list, **Save changes**
+(applies instantly, stored in that browser). To make it permanent for everyone, click
+**Download options.xlsx**, replace `public/options.xlsx` in the project, and redeploy.
+
+**Or edit the file directly:** open `public/options.xlsx` in Excel / Google Sheets /
+LibreOffice, add or remove rows, commit and push – Render rebuilds.
 
 Regenerate the file from the built-in defaults any time: `npm run gen:options`.
 
-### Optional: live edits via Google Sheet (no redeploy)
-
-If you set `VITE_OPTIONS_SHEET_ID` (in `.env` locally, or **Render → Environment**), the
-app reads a *published* Google Sheet with the same tabs instead, so non-technical staff
-can edit options in the browser. Priority order:
-**Google Sheet (if the ID is set) → `public/options.xlsx` → built-in defaults in `src/data/optionDefaults.ts`.**
+Load priority: **saved Settings edits (browser) → `public/options.xlsx` → built-in
+defaults in `src/data/optionDefaults.ts`.**
 
 ---
 

@@ -9,6 +9,7 @@ import { CandidateDetailPage } from './pages/CandidateDetailPage';
 import { CandidateReviewPage } from './pages/CandidateReviewPage';
 import { CandidateCallPage } from './pages/CandidateCallPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { SettingsPage } from './pages/SettingsPage';
 
 export function App() {
   return (
@@ -24,6 +25,7 @@ export function App() {
             <Route path="candidate/:id/review" element={<CandidateReviewPage />} />
             <Route path="candidate/:id/call" element={<CandidateCallPage />} />
             <Route path="reports" element={<ReportsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

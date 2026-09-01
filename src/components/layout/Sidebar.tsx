@@ -11,7 +11,8 @@ import {
   Sparkles,
   ExternalLink,
   FileCheck2,
-  PhoneCall
+  PhoneCall,
+  Settings
 } from 'lucide-react';
 import { DaxinLogo } from '../common/DaxinLogo';
 import { useCandidates } from '../../context/CandidateContext';
@@ -59,6 +60,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       name: 'Reports & Analytics',
       path: '/reports',
       icon: BarChart3,
+      badge: null
+    },
+    {
+      name: 'Settings',
+      path: '/settings',
+      icon: Settings,
       badge: null
     }
   ];

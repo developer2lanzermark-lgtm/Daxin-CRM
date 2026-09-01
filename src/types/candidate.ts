@@ -1,7 +1,7 @@
 export type CandidateStatus = 'Unprogress' | 'Process' | 'Select' | 'Reject';
 
-// Dropdown values are loaded at runtime from the published Google Sheet
-// (see src/data/optionsSheet.ts), so these are open string types.
+// Dropdown values are loaded at runtime from public/options.xlsx
+// (see src/data/optionsExcel.ts), so these are open string types.
 export type JobFunction = string;
 
 export type Gender = string;
