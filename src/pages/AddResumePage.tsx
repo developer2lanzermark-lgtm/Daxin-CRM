@@ -621,7 +621,7 @@ export const AddResumePage: React.FC = () => {
           <legend className="text-[15px] font-semibold text-slate-900">
             Experience
           </legend>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <label className={labelClass}>Previous Experience</label>
               <select
