@@ -4,6 +4,7 @@ import { useCandidates } from '../context/CandidateContext';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { CallStatusBadge } from '../components/common/CallStatusBadge';
 import { JobFunctionBadge } from '../components/common/JobFunctionBadge';
+import { StickyHeader } from '../components/layout/StickyHeader';
 import type { CallStatus, InterviewMode } from '../types/candidate';
 import {
   ArrowLeft,
@@ -248,7 +249,7 @@ export const CandidateCallPage: React.FC = () => {
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Workflow Navigation Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <StickyHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -295,7 +296,7 @@ export const CandidateCallPage: React.FC = () => {
             <span>Call for Interview</span>
           </span>
         </div>
-      </div>
+      </StickyHeader>
 
       {/* Shortlist Warning if candidate was not shortlisted */}
       {!isShortlisted && (
@@ -374,7 +375,7 @@ export const CandidateCallPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Interview Date & Time */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
                 Interview Date & Time <span className="text-rose-500">*</span>
               </label>
               <input
@@ -388,7 +389,7 @@ export const CandidateCallPage: React.FC = () => {
 
             {/* Interview Mode */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
                 Interview Mode <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -432,7 +433,7 @@ export const CandidateCallPage: React.FC = () => {
 
             {/* Interviewer / Panel */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
                 Interviewer / Panel Name <span className="text-rose-500">*</span>
               </label>
               <input
@@ -447,7 +448,7 @@ export const CandidateCallPage: React.FC = () => {
 
             {/* Location or Meeting Link */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+              <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
                 Location or Meeting Link <span className="text-rose-500">*</span>
               </label>
               <input
@@ -463,7 +464,7 @@ export const CandidateCallPage: React.FC = () => {
 
           {/* Call / Response Status Tracking */}
           <div className="pt-4 border-t border-slate-100">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+            <label className="block text-[13px] font-medium text-slate-700 mb-2">
               Call Attempt & Response Status
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -495,7 +496,7 @@ export const CandidateCallPage: React.FC = () => {
 
           {/* Call Notes */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
               Call Remarks / Candidate Response Notes
             </label>
             <textarea

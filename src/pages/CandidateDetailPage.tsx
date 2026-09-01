@@ -5,6 +5,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { SourceBadge } from '../components/common/SourceBadge';
 import { CallStatusBadge } from '../components/common/CallStatusBadge';
 import { JobFunctionBadge } from '../components/common/JobFunctionBadge';
+import { StickyHeader } from '../components/layout/StickyHeader';
 import type { CandidateStatus, CallStatus } from '../types/candidate';
 import {
   ArrowLeft,
@@ -104,7 +105,7 @@ export const CandidateDetailPage: React.FC = () => {
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Top navigation & Action bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <StickyHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -151,7 +152,7 @@ export const CandidateDetailPage: React.FC = () => {
             <span className="hidden sm:inline">Delete</span>
           </button>
         </div>
-      </div>
+      </StickyHeader>
 
       {statusUpdatedToast && (
         <div className="bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm font-semibold rounded-2xl p-3 shadow-sm animate-in fade-in flex items-center justify-between">

@@ -6,6 +6,7 @@ import { SourceBadge } from '../components/common/SourceBadge';
 import { CallStatusBadge } from '../components/common/CallStatusBadge';
 import { JobFunctionBadge } from '../components/common/JobFunctionBadge';
 import { useOptions } from '../context/OptionsContext';
+import { StickyHeader } from '../components/layout/StickyHeader';
 import {
   UserPlus,
   Phone,
@@ -98,7 +99,7 @@ export const ResumeListPage: React.FC = () => {
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <StickyHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Candidate Resumes</h2>
           <p className="text-xs sm:text-sm text-slate-500">
@@ -112,7 +113,7 @@ export const ResumeListPage: React.FC = () => {
           <UserPlus className="w-4 h-4" />
           <span>Add New Resume</span>
         </Link>
-      </div>
+      </StickyHeader>
 
       {/* Filter Control Toolbar */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-5 space-y-4">

@@ -1,136 +1,172 @@
-// Loads all dropdown values from a published Google Sheet.
+// Loads all dropdown values from a published Google Sheet (Excel workbook).
 //
-// SETUP (one time):
-//   1. Create a Google Sheet with a single tab named exactly:  Options
-//   2. Row 1 headers (exact, case-sensitive):  Category | Group | Value | Label
-//   3. Fill rows (see README / options-template.csv for the full list). Examples:
-//        JobFunction   |            | Developer                  |
-//        Position      | Developer  | Frontend Developer (React) |
-//        ResumeSource  |            | Email                      |
-//        CountryCode   |            | +91                        | India | 🇮🇳
-//        Gender        |            | Male                       |
-//        Qualification |            | UG                         | needsDepartment
-//   4. File -> Share -> Publish to web -> Entire document -> Publish
-//   5. Copy the Sheet ID from the URL:
-//        https://docs.google.com/spreadsheets/d/<SHEET_ID>/edit
-//   6. In Render: Environment -> add  VITE_OPTIONS_SHEET_ID = <SHEET_ID>
-//      (or paste it into FALLBACK_SHEET_ID below and commit)
+// The workbook has ONE TAB PER INPUT (sheet names are case-sensitive):
+//
+//   Tab "JobFunction"     col A: Job Function
+//   Tab "Position"        col A: Job Function     col B: Position
+//   Tab "ResumeSource"    col A: Resume Source
+//   Tab "CountryCode"     col A: Code   col B: Country   col C: Flag
+//   Tab "Gender"          col A: Gender
+//   Tab "MaritalStatus"   col A: Marital Status
+//   Tab "Qualification"   col A: Qualification   col B: Needs Department (Yes/No)
+//
+// Row 1 of every tab is a header row.
+//
+// SETUP:
+//   1. Import public/options-template.xlsx into Google Sheets (File -> Import).
+//   2. File -> Share -> Publish to web -> Publish. Share: Anyone with link = Viewer.
+//   3. Copy the id from the URL .../spreadsheets/d/<ID>/edit
+//   4. Render -> Environment -> VITE_OPTIONS_SHEET_ID = <ID>  (or set FALLBACK_SHEET_ID below)
 
 import { DEFAULT_OPTIONS, type AppOptions, type CountryCodeOption } from './optionDefaults';
 
-// Optional: hard-code the sheet id here instead of using an env var.
 const FALLBACK_SHEET_ID = '';
-
-const TAB_NAME = 'Options';
 
 export const OPTIONS_SHEET_ID: string =
   (import.meta.env.VITE_OPTIONS_SHEET_ID as string | undefined)?.trim() || FALLBACK_SHEET_ID;
 
-interface SheetRow {
-  category: string;
-  group: string;
-  value: string;
-  label: string;
-}
+const TABS = {
+  jobFunction: 'JobFunction',
+  position: 'Position',
+  resumeSource: 'ResumeSource',
+  countryCode: 'CountryCode',
+  gender: 'Gender',
+  maritalStatus: 'MaritalStatus',
+  qualification: 'Qualification'
+} as const;
 
-// gviz returns:  /*O_o*/\ngoogle.visualization.Query.setResponse({...});
-function parseGvizResponse(text: string): SheetRow[] {
+type GvizCell = { v: unknown } | null;
+type GvizRow = { c: GvizCell[] };
+
+function parseGviz(text: string): { cols: string[]; rows: GvizRow[] } {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
   if (start === -1 || end === -1) throw new Error('Unexpected Google Sheet response');
-
   const json = JSON.parse(text.slice(start, end + 1));
-  const cols: string[] = (json.table.cols || []).map((c: { label?: string }) =>
+  const cols: string[] = (json.table?.cols || []).map((c: { label?: string }) =>
     (c.label || '').trim().toLowerCase()
   );
-
-  // Support either labelled header row OR positional columns A-D
-  const idx = (name: string, fallback: number) => {
-    const found = cols.indexOf(name);
-    return found === -1 ? fallback : found;
-  };
-  const ci = idx('category', 0);
-  const gi = idx('group', 1);
-  const vi = idx('value', 2);
-  const li = idx('label', 3);
-
-  const cell = (row: { c: ({ v: unknown } | null)[] }, i: number) => {
-    const c = row.c?.[i];
-    return c && c.v != null ? String(c.v).trim() : '';
-  };
-
-  return (json.table.rows || [])
-    .map((r: { c: ({ v: unknown } | null)[] }) => ({
-      category: cell(r, ci),
-      group: cell(r, gi),
-      value: cell(r, vi),
-      label: cell(r, li)
-    }))
-    .filter((r: SheetRow) => r.category && r.value);
+  return { cols, rows: json.table?.rows || [] };
 }
 
-function rowsToOptions(rows: SheetRow[]): AppOptions {
+const cellText = (row: GvizRow, i: number): string => {
+  const c = row.c?.[i];
+  return c && c.v != null ? String(c.v).trim() : '';
+};
+
+const isYes = (s: string) => /^(y|yes|true|1|✓)$/i.test(s.trim());
+
+async function fetchTab(sheetId: string, tab: string, signal?: AbortSignal): Promise<{ cols: string[]; rows: GvizRow[] }> {
+  const url =
+    `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq` +
+    `?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`Tab "${tab}" request failed (${res.status})`);
+  return parseGviz(await res.text());
+}
+
+// Column index by fuzzy header name, else positional fallback
+const colIndex = (cols: string[], names: string[], fallback: number): number => {
   const norm = (s: string) => s.toLowerCase().replace(/[\s_-]/g, '');
+  const wanted = names.map(norm);
+  for (let i = 0; i < cols.length; i++) {
+    if (wanted.includes(norm(cols[i]))) return i;
+  }
+  return fallback;
+};
 
-  const jobFunctions: string[] = [];
+export async function fetchOptionsFromSheet(signal?: AbortSignal): Promise<AppOptions> {
+  if (!OPTIONS_SHEET_ID) {
+    throw new Error('No Google Sheet configured (VITE_OPTIONS_SHEET_ID is empty)');
+  }
+
+  const load = (tab: string) => fetchTab(OPTIONS_SHEET_ID, tab, signal);
+
+  const [
+    jobFunctionR,
+    positionR,
+    resumeSourceR,
+    countryCodeR,
+    genderR,
+    maritalR,
+    qualificationR
+  ] = await Promise.allSettled([
+    load(TABS.jobFunction),
+    load(TABS.position),
+    load(TABS.resumeSource),
+    load(TABS.countryCode),
+    load(TABS.gender),
+    load(TABS.maritalStatus),
+    load(TABS.qualification)
+  ]);
+
+  if (
+    [jobFunctionR, positionR, resumeSourceR, countryCodeR, genderR, maritalR, qualificationR]
+      .every((r) => r.status === 'rejected')
+  ) {
+    throw new Error('Could not read any tab from the Google Sheet');
+  }
+
+  const firstColValues = (r: PromiseSettledResult<{ cols: string[]; rows: GvizRow[] }>): string[] =>
+    r.status === 'fulfilled'
+      ? r.value.rows.map((row) => cellText(row, 0)).filter(Boolean)
+      : [];
+
+  // Job Functions
+  const jobFunctions = firstColValues(jobFunctionR);
+
+  // Positions grouped by Job Function
   const positionsByJobFunction: Record<string, string[]> = {};
-  const resumeSources: string[] = [];
-  const countryCodes: CountryCodeOption[] = [];
-  const genders: string[] = [];
-  const maritalStatuses: string[] = [];
-  const qualifications: string[] = [];
-  const qualificationsNeedingDepartment: string[] = [];
-
-  for (const row of rows) {
-    switch (norm(row.category)) {
-      case 'jobfunction':
-      case 'jobfunctions':
-        if (!jobFunctions.includes(row.value)) jobFunctions.push(row.value);
-        if (!positionsByJobFunction[row.value]) positionsByJobFunction[row.value] = [];
-        break;
-      case 'position':
-      case 'positions': {
-        const grp = row.group || 'Others';
-        if (!positionsByJobFunction[grp]) positionsByJobFunction[grp] = [];
-        positionsByJobFunction[grp].push(row.value);
-        break;
-      }
-      case 'resumesource':
-      case 'resumesources':
-      case 'source':
-        resumeSources.push(row.value);
-        break;
-      case 'countrycode':
-      case 'countrycodes':
-        countryCodes.push({
-          code: row.value,
-          label: row.label || row.group || '',
-          flag: row.group && row.group.length <= 4 ? row.group : ''
-        });
-        break;
-      case 'gender':
-      case 'genders':
-        genders.push(row.value);
-        break;
-      case 'maritalstatus':
-      case 'maritalstatuses':
-        maritalStatuses.push(row.value);
-        break;
-      case 'qualification':
-      case 'qualifications':
-        qualifications.push(row.value);
-        if (norm(row.label) === 'needsdepartment' || norm(row.label) === 'department') {
-          qualificationsNeedingDepartment.push(row.value);
-        }
-        break;
-      default:
-        break;
+  for (const jf of jobFunctions) positionsByJobFunction[jf] = [];
+  if (positionR.status === 'fulfilled') {
+    const { cols, rows } = positionR.value;
+    const gi = colIndex(cols, ['jobfunction', 'group', 'function'], 0);
+    const pi = colIndex(cols, ['position', 'value', 'role'], 1);
+    for (const row of rows) {
+      const grp = cellText(row, gi);
+      const pos = cellText(row, pi);
+      if (!grp || !pos) continue;
+      if (!positionsByJobFunction[grp]) positionsByJobFunction[grp] = [];
+      positionsByJobFunction[grp].push(pos);
     }
   }
 
-  // Ensure every job function has a positions bucket
-  for (const jf of jobFunctions) {
-    if (!positionsByJobFunction[jf]) positionsByJobFunction[jf] = [];
+  // Resume Sources
+  const resumeSources = firstColValues(resumeSourceR);
+
+  // Country Codes
+  let countryCodes: CountryCodeOption[] = [];
+  if (countryCodeR.status === 'fulfilled') {
+    const { cols, rows } = countryCodeR.value;
+    const codeI = colIndex(cols, ['code', 'dialcode', 'countrycode'], 0);
+    const nameI = colIndex(cols, ['country', 'label', 'name'], 1);
+    const flagI = colIndex(cols, ['flag', 'emoji'], 2);
+    countryCodes = rows
+      .map((row) => ({
+        code: cellText(row, codeI),
+        label: cellText(row, nameI),
+        flag: cellText(row, flagI)
+      }))
+      .filter((c) => c.code);
+  }
+
+  // Gender / Marital Status
+  const genders = firstColValues(genderR);
+  const maritalStatuses = firstColValues(maritalR);
+
+  // Qualifications (+ which need a department field)
+  const qualifications: string[] = [];
+  const qualificationsNeedingDepartment: string[] = [];
+  if (qualificationR.status === 'fulfilled') {
+    const { cols, rows } = qualificationR.value;
+    const qi = colIndex(cols, ['qualification', 'value', 'level'], 0);
+    const di = colIndex(cols, ['needsdepartment', 'department', 'needsspecialization'], 1);
+    for (const row of rows) {
+      const q = cellText(row, qi);
+      if (!q) continue;
+      qualifications.push(q);
+      if (isYes(cellText(row, di))) qualificationsNeedingDepartment.push(q);
+    }
   }
 
   return {
@@ -147,23 +183,4 @@ function rowsToOptions(rows: SheetRow[]): AppOptions {
       ? qualificationsNeedingDepartment
       : DEFAULT_OPTIONS.qualificationsNeedingDepartment
   };
-}
-
-export async function fetchOptionsFromSheet(signal?: AbortSignal): Promise<AppOptions> {
-  if (!OPTIONS_SHEET_ID) {
-    throw new Error('No Google Sheet configured (VITE_OPTIONS_SHEET_ID is empty)');
-  }
-
-  const url =
-    `https://docs.google.com/spreadsheets/d/${OPTIONS_SHEET_ID}/gviz/tq` +
-    `?tqx=out:json&sheet=${encodeURIComponent(TAB_NAME)}`;
-
-  const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`Google Sheet request failed (${res.status})`);
-
-  const text = await res.text();
-  const rows = parseGvizResponse(text);
-  if (!rows.length) throw new Error('Google Sheet "Options" tab is empty');
-
-  return rowsToOptions(rows);
 }

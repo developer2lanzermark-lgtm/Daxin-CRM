@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCandidates } from '../context/CandidateContext';
 import { useOptions } from '../context/OptionsContext';
+import { StickyHeader } from '../components/layout/StickyHeader';
 import type {
   ResumeSource,
   CandidateStatus,
@@ -18,7 +19,7 @@ import {
 const inputClass =
   'w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all';
 const labelClass =
-  'block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5';
+  'block text-[13px] font-medium text-slate-700 mb-1.5';
 
 export const AddResumePage: React.FC = () => {
   const { addCandidate, checkDuplicate } = useCandidates();
@@ -200,7 +201,7 @@ export const AddResumePage: React.FC = () => {
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <StickyHeader className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -224,7 +225,7 @@ export const AddResumePage: React.FC = () => {
             </p>
           </div>
         </div>
-      </div>
+      </StickyHeader>
 
       {/* Duplicate Warning Box */}
       {duplicateWarning && (
@@ -281,7 +282,7 @@ export const AddResumePage: React.FC = () => {
       <form onSubmit={(e) => handleSubmit(e, false)} className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-8">
         {/* SECTION: Application Details */}
         <fieldset className="space-y-4">
-          <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          <legend className="text-[15px] font-semibold text-slate-900">
             Application Details
           </legend>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -441,7 +442,7 @@ export const AddResumePage: React.FC = () => {
 
         {/* SECTION: Personal Details */}
         <fieldset className="space-y-4 border-t border-slate-100 pt-6">
-          <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          <legend className="text-[15px] font-semibold text-slate-900">
             Personal Details
           </legend>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -485,7 +486,7 @@ export const AddResumePage: React.FC = () => {
 
         {/* SECTION: Location */}
         <fieldset className="space-y-4 border-t border-slate-100 pt-6">
-          <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          <legend className="text-[15px] font-semibold text-slate-900">
             Location
           </legend>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -521,7 +522,7 @@ export const AddResumePage: React.FC = () => {
 
         {/* SECTION: Qualification */}
         <fieldset className="space-y-4 border-t border-slate-100 pt-6">
-          <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          <legend className="text-[15px] font-semibold text-slate-900">
             Qualification
           </legend>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -580,7 +581,7 @@ export const AddResumePage: React.FC = () => {
 
         {/* SECTION: Experience */}
         <fieldset className="space-y-4 border-t border-slate-100 pt-6">
-          <legend className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          <legend className="text-[15px] font-semibold text-slate-900">
             Experience
           </legend>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

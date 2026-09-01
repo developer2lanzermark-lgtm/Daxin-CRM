@@ -4,6 +4,7 @@ import { useCandidates } from '../context/CandidateContext';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { SourceBadge } from '../components/common/SourceBadge';
 import { JobFunctionBadge } from '../components/common/JobFunctionBadge';
+import { StickyHeader } from '../components/layout/StickyHeader';
 import type { ReviewDecision, CandidateStatus } from '../types/candidate';
 import {
   ArrowLeft,
@@ -104,7 +105,7 @@ export const CandidateReviewPage: React.FC = () => {
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
       {/* Workflow Navigation Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <StickyHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -162,7 +163,7 @@ export const CandidateReviewPage: React.FC = () => {
             <span>Call for Interview</span>
           </button>
         </div>
-      </div>
+      </StickyHeader>
 
       {/* Success Notification */}
       {saveSuccess && (
@@ -268,7 +269,7 @@ export const CandidateReviewPage: React.FC = () => {
 
         {/* Decision Cards */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-3">
+          <label className="block text-[13px] font-medium text-slate-700 mb-3">
             Screening Decision <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -358,7 +359,7 @@ export const CandidateReviewPage: React.FC = () => {
         {/* Reviewer Details */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
               Reviewer Name <span className="text-rose-500">*</span>
             </label>
             <input
@@ -372,7 +373,7 @@ export const CandidateReviewPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+            <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
               Review Date <span className="text-rose-500">*</span>
             </label>
             <input
@@ -387,7 +388,7 @@ export const CandidateReviewPage: React.FC = () => {
 
         {/* Review Remarks / Notes */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+          <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
             Screening Notes & Evaluation Remarks
           </label>
           <textarea
