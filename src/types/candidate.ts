@@ -1,23 +1,16 @@
 export type CandidateStatus = 'Unprogress' | 'Process' | 'Select' | 'Reject';
 
-export type JobFunction =
-  | 'Admin'
-  | 'Developer'
-  | 'Marketing & Sales'
-  | 'Others'
-  | 'Service';
+// Dropdown values are loaded at runtime from the published Google Sheet
+// (see src/data/optionsSheet.ts), so these are open string types.
+export type JobFunction = string;
 
-export type Gender = 'Male' | 'Female' | 'Other';
+export type Gender = string;
 
-export type MaritalStatus = 'Single' | 'Married' | 'Other';
+export type MaritalStatus = string;
 
-export type Qualification = 'School' | 'Diploma' | 'UG' | 'PG';
+export type Qualification = string;
 
-export type ResumeSource = 
-  | 'Email'
-  | 'Job Portal'
-  | 'Walk-in'
-  | 'Website Form';
+export type ResumeSource = string;
 
 export type CallStatus = 'Pending' | 'Called' | 'Not Attended' | 'No Response';
 

@@ -5,7 +5,7 @@ import { StatusBadge } from '../components/common/StatusBadge';
 import { SourceBadge } from '../components/common/SourceBadge';
 import { CallStatusBadge } from '../components/common/CallStatusBadge';
 import { JobFunctionBadge } from '../components/common/JobFunctionBadge';
-import { JOB_FUNCTIONS, RESUME_SOURCES } from '../data/mockCandidates';
+import { useOptions } from '../context/OptionsContext';
 import {
   UserPlus,
   Phone,
@@ -18,6 +18,8 @@ import {
 
 export const ResumeListPage: React.FC = () => {
   const { candidates } = useCandidates();
+  const { options } = useOptions();
+  const { jobFunctions: JOB_FUNCTIONS, resumeSources: RESUME_SOURCES } = options;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const statusParam = searchParams.get('status') || 'All';

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CandidateProvider } from './context/CandidateContext';
+import { OptionsProvider } from './context/OptionsContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { DashboardPage } from './pages/DashboardPage';
 import { ResumeListPage } from './pages/ResumeListPage';
@@ -11,7 +12,8 @@ import { ReportsPage } from './pages/ReportsPage';
 
 export function App() {
   return (
-    <CandidateProvider>
+    <OptionsProvider>
+      <CandidateProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<AppLayout />}>
@@ -27,7 +29,8 @@ export function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </CandidateProvider>
+      </CandidateProvider>
+    </OptionsProvider>
   );
 }
 

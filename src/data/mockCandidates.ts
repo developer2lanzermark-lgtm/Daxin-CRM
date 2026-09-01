@@ -1,61 +1,14 @@
-import type { Candidate, JobFunction, ResumeSource } from '../types/candidate';
+import type { Candidate } from '../types/candidate';
+import { DEFAULT_OPTIONS } from './optionDefaults';
 
-// Alphabetical order
-export const JOB_FUNCTIONS: JobFunction[] = [
-  'Admin',
-  'Developer',
-  'Marketing & Sales',
-  'Others',
-  'Service'
-];
-
-export const POSITIONS_BY_JOB_FUNCTION: Record<JobFunction, string[]> = {
-  Admin: [
-    'HR Executive',
-    'Office Administrator',
-    'Operations Coordinator'
-  ],
-  Developer: [
-    'Frontend Developer (React)',
-    'Backend Developer (Node / Python)',
-    'Full Stack Engineer',
-    'QA Automation Engineer',
-    'DevOps / Cloud Engineer'
-  ],
-  'Marketing & Sales': [
-    'Digital Marketing Specialist',
-    'Content & SEO Strategist',
-    'UI/UX Designer',
-    'Sales & Business Development',
-    'B2B Account Executive',
-    'Inside Sales Specialist'
-  ],
-  Others: [],
-  Service: [
-    'Technical Support Engineer',
-    'Customer Success Specialist',
-    'IT Helpdesk Support'
-  ]
-};
-
+// Dropdown values now come from the published Google Sheet at runtime
+// (via useOptions() / OptionsContext). These exports remain as the
+// built-in fallback set and for any non-React consumers.
+export const JOB_FUNCTIONS = DEFAULT_OPTIONS.jobFunctions;
+export const POSITIONS_BY_JOB_FUNCTION = DEFAULT_OPTIONS.positionsByJobFunction;
 export const ALL_POSITIONS = Object.values(POSITIONS_BY_JOB_FUNCTION).flat();
-
-export const RESUME_SOURCES: ResumeSource[] = [
-  'Email',
-  'Job Portal',
-  'Walk-in',
-  'Website Form'
-];
-
-export const COUNTRY_CODES = [
-  { code: '+91', label: '+91 (India)', flag: '🇮🇳' },
-  { code: '+1', label: '+1 (USA/Canada)', flag: '🇺🇸' },
-  { code: '+44', label: '+44 (UK)', flag: '🇬🇧' },
-  { code: '+65', label: '+65 (Singapore)', flag: '🇸🇬' },
-  { code: '+971', label: '+971 (UAE)', flag: '🇦🇪' },
-  { code: '+60', label: '+60 (Malaysia)', flag: '🇲🇾' },
-  { code: '+61', label: '+61 (Australia)', flag: '🇦🇺' }
-];
+export const RESUME_SOURCES = DEFAULT_OPTIONS.resumeSources;
+export const COUNTRY_CODES = DEFAULT_OPTIONS.countryCodes;
 
 export const INITIAL_MOCK_CANDIDATES: Candidate[] = [
   {

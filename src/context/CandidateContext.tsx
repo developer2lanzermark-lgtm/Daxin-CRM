@@ -9,8 +9,8 @@ interface CandidateStats {
   select: number;
   reject: number;
   thisMonthCount: number;
-  bySource: Record<ResumeSource, number>;
-  byJobFunction: Record<JobFunction, number>;
+  bySource: Record<string, number>;
+  byJobFunction: Record<string, number>;
   byCallStatus: Record<CallStatus, number>;
 }
 
@@ -252,20 +252,10 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     let reject = 0;
     let thisMonthCount = 0;
 
-    const bySource: Record<ResumeSource, number> = {
-      'Email': 0,
-      'Job Portal': 0,
-      'Walk-in': 0,
-      'Website Form': 0
-    };
-
-    const byJobFunction: Record<JobFunction, number> = {
-      'Admin': 0,
-      'Developer': 0,
-      'Marketing & Sales': 0,
-      'Others': 0,
-      'Service': 0
-    };
+    // Dropdown values are dynamic (Google Sheet driven), so these
+    // buckets are accumulated from whatever values the candidates have.
+    const bySource: Record<string, number> = {};
+    const byJobFunction: Record<string, number> = {};
 
     const byCallStatus: Record<CallStatus, number> = {
       'Pending': 0,
@@ -282,13 +272,13 @@ export const CandidateProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       else if (c.status === 'Reject') reject++;
 
       // Sources
-      if (bySource[c.source] !== undefined) {
-        bySource[c.source]++;
+      if (c.source) {
+        bySource[c.source] = (bySource[c.source] || 0) + 1;
       }
 
       // Job Function
-      if (c.jobFunction && byJobFunction[c.jobFunction] !== undefined) {
-        byJobFunction[c.jobFunction]++;
+      if (c.jobFunction) {
+        byJobFunction[c.jobFunction] = (byJobFunction[c.jobFunction] || 0) + 1;
       }
 
       // Call status

@@ -1,0 +1,44 @@
+Category,Group,Value,Label
+JobFunction,,Admin,
+JobFunction,,Developer,
+JobFunction,,Marketing & Sales,
+JobFunction,,Others,
+JobFunction,,Service,
+Position,Admin,HR Executive,
+Position,Admin,Office Administrator,
+Position,Admin,Operations Coordinator,
+Position,Developer,Frontend Developer (React),
+Position,Developer,Backend Developer (Node / Python),
+Position,Developer,Full Stack Engineer,
+Position,Developer,QA Automation Engineer,
+Position,Developer,DevOps / Cloud Engineer,
+Position,Marketing & Sales,Digital Marketing Specialist,
+Position,Marketing & Sales,Content & SEO Strategist,
+Position,Marketing & Sales,UI/UX Designer,
+Position,Marketing & Sales,Sales & Business Development,
+Position,Marketing & Sales,B2B Account Executive,
+Position,Marketing & Sales,Inside Sales Specialist,
+Position,Service,Technical Support Engineer,
+Position,Service,Customer Success Specialist,
+Position,Service,IT Helpdesk Support,
+ResumeSource,,Email,
+ResumeSource,,Job Portal,
+ResumeSource,,Walk-in,
+ResumeSource,,Website Form,
+CountryCode,🇮🇳,+91,India
+CountryCode,🇺🇸,+1,USA/Canada
+CountryCode,🇬🇧,+44,UK
+CountryCode,🇸🇬,+65,Singapore
+CountryCode,🇦🇪,+971,UAE
+CountryCode,🇲🇾,+60,Malaysia
+CountryCode,🇦🇺,+61,Australia
+Gender,,Male,
+Gender,,Female,
+Gender,,Other,
+MaritalStatus,,Single,
+MaritalStatus,,Married,
+MaritalStatus,,Other,
+Qualification,,School,
+Qualification,,Diploma,needsDepartment
+Qualification,,UG,needsDepartment
+Qualification,,PG,needsDepartment

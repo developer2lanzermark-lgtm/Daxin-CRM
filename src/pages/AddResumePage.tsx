@@ -1,14 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCandidates } from '../context/CandidateContext';
-import { JOB_FUNCTIONS, POSITIONS_BY_JOB_FUNCTION, RESUME_SOURCES, COUNTRY_CODES } from '../data/mockCandidates';
+import { useOptions } from '../context/OptionsContext';
 import type {
   ResumeSource,
   CandidateStatus,
-  JobFunction,
-  Gender,
-  MaritalStatus,
-  Qualification
+  JobFunction
 } from '../types/candidate';
 import {
   UserPlus,
@@ -18,10 +15,6 @@ import {
   ArrowLeft
 } from 'lucide-react';
 
-const GENDERS: Gender[] = ['Male', 'Female', 'Other'];
-const MARITAL_STATUSES: MaritalStatus[] = ['Single', 'Married', 'Other'];
-const QUALIFICATIONS: Qualification[] = ['School', 'Diploma', 'UG', 'PG'];
-
 const inputClass =
   'w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-800 transition-all';
 const labelClass =
@@ -29,12 +22,22 @@ const labelClass =
 
 export const AddResumePage: React.FC = () => {
   const { addCandidate, checkDuplicate } = useCandidates();
+  const { options, source: optionsSource } = useOptions();
   const navigate = useNavigate();
 
-  const [selectedJobFunction, setSelectedJobFunction] = useState<JobFunction | ''>('Developer');
-  const [selectedPosition, setSelectedPosition] = useState<string>(
-    POSITIONS_BY_JOB_FUNCTION['Developer'][0]
-  );
+  const {
+    jobFunctions: JOB_FUNCTIONS,
+    positionsByJobFunction: POSITIONS_BY_JOB_FUNCTION,
+    resumeSources: RESUME_SOURCES,
+    countryCodes: COUNTRY_CODES,
+    genders: GENDERS,
+    maritalStatuses: MARITAL_STATUSES,
+    qualifications: QUALIFICATIONS,
+    qualificationsNeedingDepartment: QUALIFICATIONS_NEEDING_DEPARTMENT
+  } = options;
+
+  const [selectedJobFunction, setSelectedJobFunction] = useState<JobFunction | ''>('');
+  const [selectedPosition, setSelectedPosition] = useState<string>('');
   const [countryCode, setCountryCode] = useState<string>('+91');
   const [rawMobile, setRawMobile] = useState<string>('');
   const [reference, setReference] = useState<string>('');
@@ -51,14 +54,14 @@ export const AddResumePage: React.FC = () => {
     remarks: '',
     // Personal details
     dob: '',
-    gender: '' as Gender | '',
-    maritalStatus: '' as MaritalStatus | '',
+    gender: '',
+    maritalStatus: '',
     // Location
     city: '',
     state: '',
     area: '',
     // Education
-    qualification: '' as Qualification | '',
+    qualification: '',
     qualificationDepartment: '',
     extraQualification: '',
     // Experience
@@ -75,29 +78,42 @@ export const AddResumePage: React.FC = () => {
 
   const [successMessage, setSuccessMessage] = useState('');
 
-  const isOthers = selectedJobFunction === 'Others';
-  const needsDepartment =
-    formData.qualification === 'Diploma' ||
-    formData.qualification === 'UG' ||
-    formData.qualification === 'PG';
-
   // Available positions based on selected Job Function
   const availablePositions = useMemo(() => {
     if (!selectedJobFunction) return [];
     return POSITIONS_BY_JOB_FUNCTION[selectedJobFunction] || [];
-  }, [selectedJobFunction]);
+  }, [selectedJobFunction, POSITIONS_BY_JOB_FUNCTION]);
+
+  // If the selected group has no predefined positions, allow free-text entry
+  const isFreeTextPosition = Boolean(selectedJobFunction) && availablePositions.length === 0;
+
+  const needsDepartment = QUALIFICATIONS_NEEDING_DEPARTMENT.includes(formData.qualification);
+
+  // Seed / re-sync the Job Function once options are available
+  useEffect(() => {
+    if (JOB_FUNCTIONS.length === 0) return;
+    if (!selectedJobFunction || !JOB_FUNCTIONS.includes(selectedJobFunction)) {
+      const first = JOB_FUNCTIONS[0];
+      setSelectedJobFunction(first);
+      const firstPositions = POSITIONS_BY_JOB_FUNCTION[first] || [];
+      setSelectedPosition(firstPositions[0] || '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JOB_FUNCTIONS]);
+
+  // Keep the Resume Source valid against the loaded options
+  useEffect(() => {
+    if (RESUME_SOURCES.length && !RESUME_SOURCES.includes(formData.source)) {
+      setFormData((prev) => ({ ...prev, source: RESUME_SOURCES[0] }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [RESUME_SOURCES]);
 
   // Handle Job Function change
   const handleJobFunctionChange = (jobFunc: JobFunction | '') => {
     setSelectedJobFunction(jobFunc);
-    if (jobFunc === 'Others') {
-      // Free-text position entry for "Others"
-      setSelectedPosition('');
-    } else if (jobFunc && POSITIONS_BY_JOB_FUNCTION[jobFunc]?.length > 0) {
-      setSelectedPosition(POSITIONS_BY_JOB_FUNCTION[jobFunc][0]);
-    } else {
-      setSelectedPosition('');
-    }
+    const positions = jobFunc ? POSITIONS_BY_JOB_FUNCTION[jobFunc] || [] : [];
+    setSelectedPosition(positions.length > 0 ? positions[0] : '');
   };
 
   // Helper to get combined formatted mobile number
@@ -142,16 +158,16 @@ export const AddResumePage: React.FC = () => {
       ...formData,
       mobile: fullMobile,
       countryCode,
-      jobFunction: selectedJobFunction as JobFunction,
+      jobFunction: selectedJobFunction,
       position: selectedPosition.trim(),
       reference: reference.trim() || undefined,
       dob: formData.dob || undefined,
-      gender: (formData.gender || undefined) as Gender | undefined,
-      maritalStatus: (formData.maritalStatus || undefined) as MaritalStatus | undefined,
+      gender: formData.gender || undefined,
+      maritalStatus: formData.maritalStatus || undefined,
       city: formData.city.trim() || undefined,
       state: formData.state.trim() || undefined,
       area: formData.area.trim() || undefined,
-      qualification: (formData.qualification || undefined) as Qualification | undefined,
+      qualification: formData.qualification || undefined,
       qualificationDepartment: needsDepartment
         ? formData.qualificationDepartment.trim() || undefined
         : undefined,
@@ -197,6 +213,14 @@ export const AddResumePage: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Add New Candidate Resume</h2>
             <p className="text-xs sm:text-sm text-slate-500">
               Manual entry with Job Function classification & automated duplicate screening (Mobile & Email)
+            </p>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Dropdown values:{' '}
+              {optionsSource === 'sheet'
+                ? 'live from Google Sheet'
+                : optionsSource === 'loading'
+                ? 'loading from Google Sheet…'
+                : 'built-in defaults'}
             </p>
           </div>
         </div>
@@ -341,12 +365,12 @@ export const AddResumePage: React.FC = () => {
               <p className="text-[11px] text-slate-400 mt-1">Practice Area / Team Group</p>
             </div>
 
-            {/* Position Applied For - dropdown (filtered) OR free text for "Others" */}
+            {/* Position Applied For - filtered dropdown, or free text when the group has no preset roles */}
             <div>
               <label className={labelClass}>
                 Position Applied For <span className="text-rose-500">*</span>
               </label>
-              {isOthers ? (
+              {isFreeTextPosition ? (
                 <input
                   type="text"
                   required
@@ -373,7 +397,7 @@ export const AddResumePage: React.FC = () => {
                 </select>
               )}
               <p className="text-[11px] text-slate-400 mt-1">
-                {isOthers
+                {isFreeTextPosition
                   ? 'Enter the exact role title'
                   : `Specific role within ${selectedJobFunction || 'Job Function'}`}
               </p>
@@ -434,7 +458,7 @@ export const AddResumePage: React.FC = () => {
               <label className={labelClass}>Gender</label>
               <select
                 value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value as Gender | '' })}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                 className={inputClass}
               >
                 <option value="">-- Select --</option>
@@ -447,7 +471,7 @@ export const AddResumePage: React.FC = () => {
               <label className={labelClass}>Marital Status</label>
               <select
                 value={formData.maritalStatus}
-                onChange={(e) => setFormData({ ...formData, maritalStatus: e.target.value as MaritalStatus | '' })}
+                onChange={(e) => setFormData({ ...formData, maritalStatus: e.target.value })}
                 className={inputClass}
               >
                 <option value="">-- Select --</option>
@@ -508,8 +532,8 @@ export const AddResumePage: React.FC = () => {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    qualification: e.target.value as Qualification | '',
-                    qualificationDepartment: ['Diploma', 'UG', 'PG'].includes(e.target.value)
+                    qualification: e.target.value,
+                    qualificationDepartment: QUALIFICATIONS_NEEDING_DEPARTMENT.includes(e.target.value)
                       ? formData.qualificationDepartment
                       : ''
                   })
