@@ -309,7 +309,7 @@ export const AddResumePage: React.FC = () => {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className={`${inputClass} font-medium`}
+                className={inputClass}
               />
             </div>
 
@@ -356,8 +356,6 @@ export const AddResumePage: React.FC = () => {
               />
             </div>
 
-            {/* Job Function + Position on one row, Source + Reference on the next */}
-            <div className="md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Job Function (Required, before Position) */}
             <div>
               <label className={labelClass}>
@@ -367,7 +365,7 @@ export const AddResumePage: React.FC = () => {
                 required
                 value={selectedJobFunction}
                 onChange={(e) => handleJobFunctionChange(e.target.value as JobFunction)}
-                className={`${inputClass} font-medium`}
+                className={inputClass}
               >
                 <option value="" disabled>-- Select Job Function --</option>
                 {JOB_FUNCTIONS.map((jf) => (
@@ -376,7 +374,6 @@ export const AddResumePage: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <p className="text-[11px] text-slate-400 mt-1">Practice Area / Team Group</p>
             </div>
 
             {/* Position Applied For - filtered dropdown, or free text when the group has no preset roles */}
@@ -390,7 +387,7 @@ export const AddResumePage: React.FC = () => {
                   required
                   value={selectedPosition}
                   onChange={(e) => setSelectedPosition(e.target.value)}
-                  className={`${inputClass} font-medium`}
+                  className={inputClass}
                 />
               ) : (
                 <select
@@ -398,7 +395,7 @@ export const AddResumePage: React.FC = () => {
                   disabled={!selectedJobFunction}
                   value={selectedPosition}
                   onChange={(e) => setSelectedPosition(e.target.value)}
-                  className={`${inputClass} font-medium disabled:opacity-60 disabled:cursor-not-allowed`}
+                  className={`${inputClass} disabled:opacity-60 disabled:cursor-not-allowed`}
                 >
                   {!selectedJobFunction && (
                     <option value="">-- Select Job Function first --</option>
@@ -410,11 +407,6 @@ export const AddResumePage: React.FC = () => {
                   ))}
                 </select>
               )}
-              <p className="text-[11px] text-slate-400 mt-1">
-                {isFreeTextPosition
-                  ? 'Enter the exact role title'
-                  : `Specific role within ${selectedJobFunction || 'Job Function'}`}
-              </p>
             </div>
 
             {/* Resume Source Channel */}
@@ -433,7 +425,6 @@ export const AddResumePage: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <p className="text-[11px] text-slate-400 mt-1">Channel through which CV was received</p>
             </div>
 
             {/* Reference / Referred By (Optional) */}
@@ -447,8 +438,6 @@ export const AddResumePage: React.FC = () => {
                 onChange={(e) => setReference(e.target.value)}
                 className={inputClass}
               />
-              <p className="text-[11px] text-slate-400 mt-1">Referral person, agency, or recruiter name</p>
-            </div>
             </div>
           </div>
         </fieldset>
