@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCandidates } from '../context/CandidateContext';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { SourceBadge } from '../components/common/SourceBadge';
@@ -6,10 +7,12 @@ import { JobFunctionBadge } from '../components/common/JobFunctionBadge';
 import {
   Download,
   Printer,
-  Calendar
+  Calendar,
+  X
 } from 'lucide-react';
 
 export const ReportsPage: React.FC = () => {
+  const navigate = useNavigate();
   const { candidates } = useCandidates();
   const [startDate, setStartDate] = useState('2026-08-01');
   const [endDate, setEndDate] = useState('2026-09-30');
@@ -98,6 +101,16 @@ export const ReportsPage: React.FC = () => {
           >
             <Download className="w-4 h-4" />
             <span>Export CSV</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            title="Close and return to Dashboard"
+            aria-label="Close and return to Dashboard"
+            className="flex-shrink-0 rounded-xl border border-slate-200 bg-white p-2 text-slate-500 shadow-sm transition-colors hover:bg-rose-50 hover:text-rose-600"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
       </div>
