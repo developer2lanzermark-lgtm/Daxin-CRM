@@ -287,15 +287,9 @@ export const SettingsPage: React.FC = () => {
 
           {/* content */}
           <div className="space-y-6">
-            {/* mobile actions + explainer */}
-            <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
-              <p className="text-xs text-slate-500 leading-relaxed">
-                <strong className="text-slate-700">Save</strong> applies your changes to every form
-                immediately (kept in this browser). To make them permanent for everyone,{' '}
-                <strong className="text-slate-700">Export .xlsx</strong>, replace{' '}
-                <code className="px-1 bg-slate-100 rounded">public/options.xlsx</code> in the project and redeploy.
-              </p>
-              <div className="flex flex-wrap gap-2 sm:hidden">
+            {/* mobile actions */}
+            <div className="sm:hidden rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={handleReset}
