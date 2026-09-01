@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const out = join(__dirname, '..', 'public', 'daxin-options-template.xlsx');
+// This is the live file the app reads at runtime (public/options.xlsx).
+const out = join(__dirname, '..', 'public', 'options.xlsx');
 
 const D = {
   jobFunctions: ['Admin', 'Developer', 'Marketing & Sales', 'Others', 'Service'],

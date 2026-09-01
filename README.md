@@ -1,40 +1,40 @@
 # Daxin HR – Resume Tracking & CRM
 
-## Dropdown values come from a Google Sheet
+## Dropdown values are configurable (Excel file)
 
-Most dropdowns on the **Add Candidate Resume** form are loaded at runtime from a
-published Google Sheet – not hard-coded. If the sheet can't be reached the app falls
-back to the built-in defaults in `src/data/optionDefaults.ts`.
-(Gender and Marital Status are fixed in the app and are **not** in the sheet.)
+Most dropdowns on the **Add Candidate Resume** form are read at runtime from an Excel
+workbook that ships with the app: **`public/options.xlsx`**.
+(Gender and Marital Status are fixed in the app and are **not** in the file.)
 
-Create a Google Sheet with **one tab per input** (tab names are case-sensitive):
+The workbook has **one sheet/tab per input** (tab names are case-sensitive):
 
-| Tab            | Column A       | Column B              | Column C |
-|----------------|----------------|-----------------------|----------|
-| `JobFunction`  | Job Function   | –                     | –        |
-| `Position`     | Job Function   | Position              | –        |
-| `ResumeSource` | Resume Source  | –                     | –        |
-| `CountryCode`  | Code (`+91`)   | Country               | Flag     |
-| `State`        | Country Code   | State                 | –        |
-| `City`         | State          | City                  | –        |
-| `Qualification`| Qualification  | Needs Department (Yes/No) | –     |
+| Tab            | Column A       | Column B                  | Column C |
+|----------------|----------------|---------------------------|----------|
+| `JobFunction`  | Job Function   | –                         | –        |
+| `Position`     | Job Function   | Position                  | –        |
+| `ResumeSource` | Resume Source  | –                         | –        |
+| `CountryCode`  | Code (`+91`)   | Country                   | Flag     |
+| `State`        | Country Code   | State                     | –        |
+| `City`         | State          | City                      | –        |
+| `Qualification`| Qualification  | Needs Department (Yes/No)  | –        |
 
-Row 1 of every tab is a header row.
+Row 1 of every tab is a header row. On the form, choosing a **Country Code** filters
+**State**, choosing a **State** filters **City**; **Area** is free text. A tab with no
+rows becomes a plain text box.
 
-On the form: choosing a **Country Code** filters the **State** dropdown; choosing a
-**State** filters the **City** dropdown; **Area** is always free text. A tab with no
-matching rows falls back to a plain text box.
+### To change the options (e.g. another company adapting the app)
 
-Setup:
-1. In Google Drive: **New → File upload** → `public/daxin-options-template.xlsx`,
-   then right-click it → **Open with → Google Sheets** (all 7 tabs come pre-filled).
-   Regenerate that file after changing defaults: `npm run gen:options-template`.
-2. **File → Share → Publish to web → Publish**; sharing = *Anyone with the link: Viewer*.
-3. Copy the id from the URL `…/spreadsheets/d/<ID>/edit`.
-4. Set `VITE_OPTIONS_SHEET_ID=<ID>` in `.env` (local) and in **Render → Environment** (production).
+1. Edit **`public/options.xlsx`** in Excel / Google Sheets / LibreOffice – add or remove rows.
+2. Commit and push – Render rebuilds and serves the new file.
 
-The form always reads the live sheet at runtime; the built-in values in
-`src/data/optionDefaults.ts` are only a fallback for when the sheet is unreachable.
+Regenerate the file from the built-in defaults any time: `npm run gen:options`.
+
+### Optional: live edits via Google Sheet (no redeploy)
+
+If you set `VITE_OPTIONS_SHEET_ID` (in `.env` locally, or **Render → Environment**), the
+app reads a *published* Google Sheet with the same tabs instead, so non-technical staff
+can edit options in the browser. Priority order:
+**Google Sheet (if the ID is set) → `public/options.xlsx` → built-in defaults in `src/data/optionDefaults.ts`.**
 
 ---
 
