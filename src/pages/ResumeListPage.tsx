@@ -97,7 +97,7 @@ export const ResumeListPage: React.FC = () => {
     Boolean(searchInput.trim());
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
+    <div className="w-full space-y-6 pb-8">
       {/* Header Bar */}
       <StickyHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>

@@ -199,7 +199,7 @@ export const AddResumePage: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
+    <div className="w-full space-y-6 pb-8">
       {/* Header */}
       <StickyHeader className="flex items-center justify-between">
         <div className="flex items-center gap-3">
