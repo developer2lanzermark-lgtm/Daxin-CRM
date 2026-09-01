@@ -21,7 +21,11 @@ const LS_KEY = 'daxin_hr_crm_options_override_v1';
 const readOverride = (): AppOptions | null => {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    return raw ? (JSON.parse(raw) as AppOptions) : null;
+    if (!raw) return null;
+    const saved = JSON.parse(raw) as Partial<AppOptions>;
+    // Merge over defaults so options saved before a new field was added
+    // still have every key (prevents "cannot read map of undefined" crashes).
+    return { ...DEFAULT_OPTIONS, ...saved };
   } catch {
     return null;
   }
