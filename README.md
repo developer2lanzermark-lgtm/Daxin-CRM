@@ -2,29 +2,34 @@
 
 ## Dropdown values come from a Google Sheet
 
-Every dropdown on the **Add New Candidate Resume** form is loaded at runtime from a
-published Google Sheet – nothing is hard-coded. If the sheet can't be reached the app
-falls back to the built-in defaults in `src/data/optionDefaults.ts`.
+Most dropdowns on the **Add Candidate Resume** form are loaded at runtime from a
+published Google Sheet – not hard-coded. If the sheet can't be reached the app falls
+back to the built-in defaults in `src/data/optionDefaults.ts`.
+(Gender and Marital Status are fixed in the app and are **not** in the sheet.)
 
-**One tab per input** (sheet/tab names are case-sensitive):
+Create a Google Sheet with **one tab per input** (tab names are case-sensitive):
 
-| Tab            | Columns                                   |
-|----------------|-------------------------------------------|
-| `JobFunction`  | Job Function                              |
-| `Position`     | Job Function · Position                   |
-| `ResumeSource` | Resume Source                             |
-| `CountryCode`  | Code · Country · Flag                     |
-| `Gender`       | Gender                                    |
-| `MaritalStatus`| Marital Status                            |
-| `Qualification`| Qualification · Needs Department (Yes/No) |
+| Tab            | Column A       | Column B              | Column C |
+|----------------|----------------|-----------------------|----------|
+| `JobFunction`  | Job Function   | –                     | –        |
+| `Position`     | Job Function   | Position              | –        |
+| `ResumeSource` | Resume Source  | –                     | –        |
+| `CountryCode`  | Code (`+91`)   | Country               | Flag     |
+| `State`        | Country Code   | State                 | –        |
+| `City`         | State          | City                  | –        |
+| `Qualification`| Qualification  | Needs Department (Yes/No) | –     |
+
+Row 1 of every tab is a header row.
+
+On the form: choosing a **Country Code** filters the **State** dropdown; choosing a
+**State** filters the **City** dropdown; **Area** is always free text. A tab with no
+matching rows falls back to a plain text box.
 
 Setup:
-1. In Google Sheets: **File → Import → Upload** `public/options-template.xlsx` → *Replace spreadsheet*.
-2. **File → Share → Publish to web → Publish**; set sharing to *Anyone with the link: Viewer*.
+1. Build the tabs above in a Google Sheet (starter values are in `src/data/optionDefaults.ts`).
+2. **File → Share → Publish to web → Publish**; sharing = *Anyone with the link: Viewer*.
 3. Copy the id from the URL `…/spreadsheets/d/<ID>/edit`.
 4. Set `VITE_OPTIONS_SHEET_ID=<ID>` in `.env` (local) and in **Render → Environment** (production).
-
-Regenerate the template after changing defaults: `npm run gen:options-template`.
 
 ---
 

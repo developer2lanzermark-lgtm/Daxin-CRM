@@ -258,19 +258,9 @@ export const CandidateCallPage: React.FC = () => {
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                Call for Interview & Notification
-              </h2>
-              <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                Stage 3: Interview Scheduling
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Schedule interview date, select mode, log call attempt, and dispatch invitations via WhatsApp & Email
-            </p>
-          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+            Call for Interview
+          </h2>
         </div>
 
         {/* Workflow Breadcrumb Stepper */}

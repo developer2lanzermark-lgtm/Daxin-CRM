@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview",
-    "gen:options-template": "node scripts/gen-options-template.mjs"
+    "preview": "vite preview"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -28,7 +27,6 @@
     "postcss": "^8.5.26",
     "tailwindcss": "^3.4.19",
     "typescript": "~6.0.2",
-    "vite": "^8.2.2",
-    "xlsx": "^0.18.5"
+    "vite": "^8.2.2"
   }
 }

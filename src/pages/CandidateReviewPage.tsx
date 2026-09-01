@@ -114,19 +114,9 @@ export const CandidateReviewPage: React.FC = () => {
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                Screen & Review Resume
-              </h2>
-              <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                Stage 2: Review
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Evaluate candidate qualifications, record shortlisting decision, and add screening remarks
-            </p>
-          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+            Resume Review
+          </h2>
         </div>
 
         {/* Workflow Breadcrumb Stepper */}

@@ -1,6 +1,5 @@
 // Built-in fallback dropdown values.
-// These are used only when the Google Sheet cannot be loaded.
-// The live values come from the published Google Sheet (see src/data/optionsSheet.ts).
+// The sheet-driven ones are used only when the Google Sheet cannot be loaded.
 
 export interface CountryCodeOption {
   code: string;
@@ -8,13 +7,14 @@ export interface CountryCodeOption {
   flag: string;
 }
 
+// ---- Loaded from the Google Sheet ------------------------------------------
 export interface AppOptions {
   jobFunctions: string[];
   positionsByJobFunction: Record<string, string[]>;
   resumeSources: string[];
   countryCodes: CountryCodeOption[];
-  genders: string[];
-  maritalStatuses: string[];
+  statesByCountryCode: Record<string, string[]>;
+  citiesByState: Record<string, string[]>;
   qualifications: string[];
   // Qualifications that require a "Department / Specialization" field
   qualificationsNeedingDepartment: string[];
@@ -56,8 +56,22 @@ export const DEFAULT_OPTIONS: AppOptions = {
     { code: '+60', label: 'Malaysia', flag: '🇲🇾' },
     { code: '+61', label: 'Australia', flag: '🇦🇺' }
   ],
-  genders: ['Male', 'Female', 'Other'],
-  maritalStatuses: ['Single', 'Married', 'Other'],
+  statesByCountryCode: {
+    '+91': ['Tamil Nadu', 'Kerala', 'Karnataka', 'Andhra Pradesh', 'Telangana', 'Maharashtra', 'Delhi']
+  },
+  citiesByState: {
+    'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli', 'Tirunelveli', 'Salem', 'Erode'],
+    Kerala: ['Kochi', 'Thiruvananthapuram', 'Kozhikode', 'Thrissur'],
+    Karnataka: ['Bengaluru', 'Mysuru', 'Mangaluru', 'Hubballi'],
+    'Andhra Pradesh': ['Visakhapatnam', 'Vijayawada', 'Guntur', 'Tirupati'],
+    Telangana: ['Hyderabad', 'Warangal', 'Nizamabad'],
+    Maharashtra: ['Mumbai', 'Pune', 'Nagpur', 'Nashik'],
+    Delhi: ['New Delhi']
+  },
   qualifications: ['School', 'Diploma', 'UG', 'PG'],
   qualificationsNeedingDepartment: ['Diploma', 'UG', 'PG']
 };
+
+// ---- NOT from the sheet: fixed lists --------------------------------------
+export const GENDER_OPTIONS = ['Male', 'Female', 'Other'] as const;
+export const MARITAL_STATUS_OPTIONS = ['Single', 'Married', 'Other'] as const;

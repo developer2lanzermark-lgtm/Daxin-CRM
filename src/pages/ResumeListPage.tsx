@@ -100,12 +100,9 @@ export const ResumeListPage: React.FC = () => {
     <div className="w-full space-y-6 pb-8">
       {/* Header Bar */}
       <StickyHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Candidate Resumes</h2>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Search, filter by Job Function & Status, and progress candidates through screening ({filteredCandidates.length} displayed)
-          </p>
-        </div>
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+          Candidate Resumes <span className="text-slate-400 font-semibold">({filteredCandidates.length})</span>
+        </h2>
         <Link
           to="/add-resume"
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm shadow-blue-500/20 transition-all"

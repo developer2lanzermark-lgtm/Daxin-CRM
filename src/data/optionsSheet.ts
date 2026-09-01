@@ -1,19 +1,20 @@
-// Loads all dropdown values from a published Google Sheet (Excel workbook).
+// Loads dropdown values from a published Google Sheet.
 //
-// The workbook has ONE TAB PER INPUT (sheet names are case-sensitive):
+// The Google Sheet has ONE TAB PER INPUT (sheet/tab names are case-sensitive):
 //
 //   Tab "JobFunction"     col A: Job Function
 //   Tab "Position"        col A: Job Function     col B: Position
 //   Tab "ResumeSource"    col A: Resume Source
 //   Tab "CountryCode"     col A: Code   col B: Country   col C: Flag
-//   Tab "Gender"          col A: Gender
-//   Tab "MaritalStatus"   col A: Marital Status
-//   Tab "Qualification"   col A: Qualification   col B: Needs Department (Yes/No)
+//   Tab "State"           col A: Country Code   col B: State
+//   Tab "City"            col A: State          col B: City
+//   Tab "Qualification"   col A: Qualification  col B: Needs Department (Yes/No)
 //
 // Row 1 of every tab is a header row.
+// (Gender and Marital Status are NOT in the sheet - they are fixed in the app.)
 //
 // SETUP:
-//   1. Import public/options-template.xlsx into Google Sheets (File -> Import).
+//   1. Build the tabs above in a Google Sheet (see README for the starter values).
 //   2. File -> Share -> Publish to web -> Publish. Share: Anyone with link = Viewer.
 //   3. Copy the id from the URL .../spreadsheets/d/<ID>/edit
 //   4. Render -> Environment -> VITE_OPTIONS_SHEET_ID = <ID>  (or set FALLBACK_SHEET_ID below)
@@ -30,15 +31,16 @@ const TABS = {
   position: 'Position',
   resumeSource: 'ResumeSource',
   countryCode: 'CountryCode',
-  gender: 'Gender',
-  maritalStatus: 'MaritalStatus',
+  state: 'State',
+  city: 'City',
   qualification: 'Qualification'
 } as const;
 
 type GvizCell = { v: unknown } | null;
 type GvizRow = { c: GvizCell[] };
+type Tab = { cols: string[]; rows: GvizRow[] };
 
-function parseGviz(text: string): { cols: string[]; rows: GvizRow[] } {
+function parseGviz(text: string): Tab {
   const start = text.indexOf('{');
   const end = text.lastIndexOf('}');
   if (start === -1 || end === -1) throw new Error('Unexpected Google Sheet response');
@@ -56,7 +58,7 @@ const cellText = (row: GvizRow, i: number): string => {
 
 const isYes = (s: string) => /^(y|yes|true|1|✓)$/i.test(s.trim());
 
-async function fetchTab(sheetId: string, tab: string, signal?: AbortSignal): Promise<{ cols: string[]; rows: GvizRow[] }> {
+async function fetchTab(sheetId: string, tab: string, signal?: AbortSignal): Promise<Tab> {
   const url =
     `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq` +
     `?tqx=out:json&sheet=${encodeURIComponent(tab)}`;
@@ -65,7 +67,6 @@ async function fetchTab(sheetId: string, tab: string, signal?: AbortSignal): Pro
   return parseGviz(await res.text());
 }
 
-// Column index by fuzzy header name, else positional fallback
 const colIndex = (cols: string[], names: string[], fallback: number): number => {
   const norm = (s: string) => s.toLowerCase().replace(/[\s_-]/g, '');
   const wanted = names.map(norm);
@@ -74,6 +75,28 @@ const colIndex = (cols: string[], names: string[], fallback: number): number => 
   }
   return fallback;
 };
+
+const firstColValues = (r: PromiseSettledResult<Tab>): string[] =>
+  r.status === 'fulfilled' ? r.value.rows.map((row) => cellText(row, 0)).filter(Boolean) : [];
+
+// Build a grouped map from a two-column tab: key column -> list of value column
+function groupTwoCols(
+  r: PromiseSettledResult<Tab>,
+  keyNames: string[],
+  valueNames: string[]
+): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  if (r.status !== 'fulfilled') return out;
+  const ki = colIndex(r.value.cols, keyNames, 0);
+  const vi = colIndex(r.value.cols, valueNames, 1);
+  for (const row of r.value.rows) {
+    const k = cellText(row, ki);
+    const v = cellText(row, vi);
+    if (!k || !v) continue;
+    (out[k] ||= []).push(v);
+  }
+  return out;
+}
 
 export async function fetchOptionsFromSheet(signal?: AbortSignal): Promise<AppOptions> {
   if (!OPTIONS_SHEET_ID) {
@@ -87,54 +110,37 @@ export async function fetchOptionsFromSheet(signal?: AbortSignal): Promise<AppOp
     positionR,
     resumeSourceR,
     countryCodeR,
-    genderR,
-    maritalR,
+    stateR,
+    cityR,
     qualificationR
   ] = await Promise.allSettled([
     load(TABS.jobFunction),
     load(TABS.position),
     load(TABS.resumeSource),
     load(TABS.countryCode),
-    load(TABS.gender),
-    load(TABS.maritalStatus),
+    load(TABS.state),
+    load(TABS.city),
     load(TABS.qualification)
   ]);
 
   if (
-    [jobFunctionR, positionR, resumeSourceR, countryCodeR, genderR, maritalR, qualificationR]
+    [jobFunctionR, positionR, resumeSourceR, countryCodeR, stateR, cityR, qualificationR]
       .every((r) => r.status === 'rejected')
   ) {
     throw new Error('Could not read any tab from the Google Sheet');
   }
 
-  const firstColValues = (r: PromiseSettledResult<{ cols: string[]; rows: GvizRow[] }>): string[] =>
-    r.status === 'fulfilled'
-      ? r.value.rows.map((row) => cellText(row, 0)).filter(Boolean)
-      : [];
-
-  // Job Functions
   const jobFunctions = firstColValues(jobFunctionR);
 
-  // Positions grouped by Job Function
-  const positionsByJobFunction: Record<string, string[]> = {};
-  for (const jf of jobFunctions) positionsByJobFunction[jf] = [];
-  if (positionR.status === 'fulfilled') {
-    const { cols, rows } = positionR.value;
-    const gi = colIndex(cols, ['jobfunction', 'group', 'function'], 0);
-    const pi = colIndex(cols, ['position', 'value', 'role'], 1);
-    for (const row of rows) {
-      const grp = cellText(row, gi);
-      const pos = cellText(row, pi);
-      if (!grp || !pos) continue;
-      if (!positionsByJobFunction[grp]) positionsByJobFunction[grp] = [];
-      positionsByJobFunction[grp].push(pos);
-    }
-  }
+  const positionsByJobFunction = groupTwoCols(
+    positionR,
+    ['jobfunction', 'group', 'function'],
+    ['position', 'value', 'role']
+  );
+  for (const jf of jobFunctions) positionsByJobFunction[jf] ||= [];
 
-  // Resume Sources
   const resumeSources = firstColValues(resumeSourceR);
 
-  // Country Codes
   let countryCodes: CountryCodeOption[] = [];
   if (countryCodeR.status === 'fulfilled') {
     const { cols, rows } = countryCodeR.value;
@@ -150,11 +156,14 @@ export async function fetchOptionsFromSheet(signal?: AbortSignal): Promise<AppOp
       .filter((c) => c.code);
   }
 
-  // Gender / Marital Status
-  const genders = firstColValues(genderR);
-  const maritalStatuses = firstColValues(maritalR);
+  const statesByCountryCode = groupTwoCols(
+    stateR,
+    ['countrycode', 'code', 'country'],
+    ['state', 'province', 'value']
+  );
 
-  // Qualifications (+ which need a department field)
+  const citiesByState = groupTwoCols(cityR, ['state', 'province'], ['city', 'value']);
+
   const qualifications: string[] = [];
   const qualificationsNeedingDepartment: string[] = [];
   if (qualificationR.status === 'fulfilled') {
@@ -176,8 +185,12 @@ export async function fetchOptionsFromSheet(signal?: AbortSignal): Promise<AppOp
       : DEFAULT_OPTIONS.positionsByJobFunction,
     resumeSources: resumeSources.length ? resumeSources : DEFAULT_OPTIONS.resumeSources,
     countryCodes: countryCodes.length ? countryCodes : DEFAULT_OPTIONS.countryCodes,
-    genders: genders.length ? genders : DEFAULT_OPTIONS.genders,
-    maritalStatuses: maritalStatuses.length ? maritalStatuses : DEFAULT_OPTIONS.maritalStatuses,
+    statesByCountryCode: Object.keys(statesByCountryCode).length
+      ? statesByCountryCode
+      : DEFAULT_OPTIONS.statesByCountryCode,
+    citiesByState: Object.keys(citiesByState).length
+      ? citiesByState
+      : DEFAULT_OPTIONS.citiesByState,
     qualifications: qualifications.length ? qualifications : DEFAULT_OPTIONS.qualifications,
     qualificationsNeedingDepartment: qualificationsNeedingDepartment.length
       ? qualificationsNeedingDepartment

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCandidates } from '../context/CandidateContext';
 import { useOptions } from '../context/OptionsContext';
+import { GENDER_OPTIONS, MARITAL_STATUS_OPTIONS } from '../data/optionDefaults';
 import { StickyHeader } from '../components/layout/StickyHeader';
 import type {
   ResumeSource,
@@ -23,7 +24,7 @@ const labelClass =
 
 export const AddResumePage: React.FC = () => {
   const { addCandidate, checkDuplicate } = useCandidates();
-  const { options, source: optionsSource } = useOptions();
+  const { options } = useOptions();
   const navigate = useNavigate();
 
   const {
@@ -31,11 +32,13 @@ export const AddResumePage: React.FC = () => {
     positionsByJobFunction: POSITIONS_BY_JOB_FUNCTION,
     resumeSources: RESUME_SOURCES,
     countryCodes: COUNTRY_CODES,
-    genders: GENDERS,
-    maritalStatuses: MARITAL_STATUSES,
+    statesByCountryCode: STATES_BY_COUNTRY,
+    citiesByState: CITIES_BY_STATE,
     qualifications: QUALIFICATIONS,
     qualificationsNeedingDepartment: QUALIFICATIONS_NEEDING_DEPARTMENT
   } = options;
+  const GENDERS = GENDER_OPTIONS;
+  const MARITAL_STATUSES = MARITAL_STATUS_OPTIONS;
 
   const [selectedJobFunction, setSelectedJobFunction] = useState<JobFunction | ''>('');
   const [selectedPosition, setSelectedPosition] = useState<string>('');
@@ -90,6 +93,12 @@ export const AddResumePage: React.FC = () => {
 
   const needsDepartment = QUALIFICATIONS_NEEDING_DEPARTMENT.includes(formData.qualification);
 
+  // Cascading location dropdowns: Country Code -> State -> City
+  const availableStates = STATES_BY_COUNTRY[countryCode] || [];
+  const availableCities = formData.state ? CITIES_BY_STATE[formData.state] || [] : [];
+  const stateIsDropdown = availableStates.length > 0;
+  const cityIsDropdown = Boolean(formData.state) && availableCities.length > 0;
+
   // Seed / re-sync the Job Function once options are available
   useEffect(() => {
     if (JOB_FUNCTIONS.length === 0) return;
@@ -115,6 +124,16 @@ export const AddResumePage: React.FC = () => {
     setSelectedJobFunction(jobFunc);
     const positions = jobFunc ? POSITIONS_BY_JOB_FUNCTION[jobFunc] || [] : [];
     setSelectedPosition(positions.length > 0 ? positions[0] : '');
+  };
+
+  const handleCountryCodeChange = (code: string) => {
+    setCountryCode(code);
+    // Reset dependent location fields when the country changes
+    setFormData((prev) => ({ ...prev, state: '', city: '' }));
+  };
+
+  const handleStateChange = (state: string) => {
+    setFormData((prev) => ({ ...prev, state, city: '' }));
   };
 
   // Helper to get combined formatted mobile number
@@ -210,20 +229,7 @@ export const AddResumePage: React.FC = () => {
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Add New Candidate Resume</h2>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Manual entry with Job Function classification & automated duplicate screening (Mobile & Email)
-            </p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              Dropdown values:{' '}
-              {optionsSource === 'sheet'
-                ? 'live from Google Sheet'
-                : optionsSource === 'loading'
-                ? 'loading from Google Sheet…'
-                : 'built-in defaults'}
-            </p>
-          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Add Candidate Resume</h2>
         </div>
       </StickyHeader>
 
@@ -308,7 +314,7 @@ export const AddResumePage: React.FC = () => {
               <div className="flex gap-2">
                 <select
                   value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
+                  onChange={(e) => handleCountryCodeChange(e.target.value)}
                   className="w-28 sm:w-32 px-2.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs sm:text-sm text-slate-800 font-mono font-medium"
                 >
                   {COUNTRY_CODES.map((c) => (
@@ -490,24 +496,59 @@ export const AddResumePage: React.FC = () => {
             Location
           </legend>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div>
-              <label className={labelClass}>City</label>
-              <input
-                type="text"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className={inputClass}
-              />
-            </div>
+            {/* State - filtered by selected Country Code */}
             <div>
               <label className={labelClass}>State</label>
-              <input
-                type="text"
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                className={inputClass}
-              />
+              {stateIsDropdown ? (
+                <select
+                  value={formData.state}
+                  onChange={(e) => handleStateChange(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">-- Select --</option>
+                  {availableStates.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={formData.state}
+                  onChange={(e) => handleStateChange(e.target.value)}
+                  className={inputClass}
+                />
+              )}
             </div>
+
+            {/* City - filtered by selected State */}
+            <div>
+              <label className={labelClass}>City</label>
+              {cityIsDropdown ? (
+                <select
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className={inputClass}
+                >
+                  <option value="">-- Select --</option>
+                  {availableCities.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={formData.city}
+                  disabled={!formData.state}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className={`${inputClass} disabled:opacity-60 disabled:cursor-not-allowed`}
+                />
+              )}
+              {!formData.state && (
+                <p className="text-[11px] text-slate-400 mt-1">Select a state first</p>
+              )}
+            </div>
+
+            {/* Area - free text */}
             <div>
               <label className={labelClass}>Area</label>
               <input
