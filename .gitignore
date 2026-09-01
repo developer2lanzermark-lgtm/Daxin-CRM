@@ -27,5 +27,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-public/options-template.xlsx
 ~$*
+public/options-template.xlsx

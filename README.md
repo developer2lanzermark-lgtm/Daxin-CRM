@@ -26,10 +26,15 @@ On the form: choosing a **Country Code** filters the **State** dropdown; choosin
 matching rows falls back to a plain text box.
 
 Setup:
-1. Build the tabs above in a Google Sheet (starter values are in `src/data/optionDefaults.ts`).
+1. In Google Drive: **New → File upload** → `public/daxin-options-template.xlsx`,
+   then right-click it → **Open with → Google Sheets** (all 7 tabs come pre-filled).
+   Regenerate that file after changing defaults: `npm run gen:options-template`.
 2. **File → Share → Publish to web → Publish**; sharing = *Anyone with the link: Viewer*.
 3. Copy the id from the URL `…/spreadsheets/d/<ID>/edit`.
 4. Set `VITE_OPTIONS_SHEET_ID=<ID>` in `.env` (local) and in **Render → Environment** (production).
+
+The form always reads the live sheet at runtime; the built-in values in
+`src/data/optionDefaults.ts` are only a fallback for when the sheet is unreachable.
 
 ---
 
