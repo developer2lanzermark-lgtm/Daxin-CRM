@@ -78,7 +78,7 @@ export const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 p-4 sm:p-6 lg:p-8">
+    <div className="w-full space-y-6 px-3 py-3 sm:px-4">
       {/* Welcome Banner */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-700 via-blue-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-900/10">
         <div className="relative z-10 max-w-2xl space-y-2">
